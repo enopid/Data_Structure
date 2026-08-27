@@ -2,7 +2,7 @@
 
 ## 개요
 
-`MyVector<T>`는 STL의 `std::vector`를 따라 구현한 동적 배열입니다. 
+`MyVector<T>`는 STL의 `std::vector`를 따라 구현한 동적 배열입니다.<br>
 원소를 연속된 메모리 공간에 저장하고, 공간이 부족하면 기존 용량에 일정 비율을 곱하는 Geometric Growth 방식으로 더 큰 공간을 할당합니다.
 
 ### 구현 중심점
@@ -32,8 +32,9 @@
   - 용량이 부족할 때 기존 용량에 `10`을 더해 선형적으로 확장합니다.
   - Geometric Growth 방식과 Linear Growth 방식의 누적 재할당 비용을 비교하기 위한 기능입니다.
 
+## 분석
+
 ## 참고 문헌
 
 - [std::vector - cppreference](https://en.cppreference.com/w/cpp/container/vector.html)
 
-## 분석
