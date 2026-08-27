@@ -2,8 +2,10 @@
 
 ## 개요
 
-`MyVector<T>`는 STL의 `std::vector`를 따라 구현한 동적 배열입니다. 원소를 연속된 메모리 공간에 저장하고, 공간이 부족하면 기존 용량에 일정 비율을 곱하는 Geometric Growth 방식으로 더 큰 공간을 할당합니다.
+`MyVector<T>`는 STL의 `std::vector`를 따라 구현한 동적 배열입니다.<br>
+원소를 연속된 메모리 공간에 저장하고, 공간이 부족하면 기존 용량에 일정 비율을 곱하는 Geometric Growth 방식으로 더 큰 공간을 할당합니다.
 
+### 구현 중심점
 - Geometric Growth 방식의 메모리 할당
 - 원소 타입의 이동과 복사를 고려한 재할당
 - 불필요한 원소 생성을 피하기 위해 `malloc`으로 원시 메모리 공간 확보
@@ -29,10 +31,6 @@
 - `linear_push_back(const T& val)`
   - 용량이 부족할 때 기존 용량에 `10`을 더해 선형적으로 확장합니다.
   - Geometric Growth 방식과 Linear Growth 방식의 누적 재할당 비용을 비교하기 위한 기능입니다.
-
-## 참고 문헌
-
-- [std::vector - cppreference](https://en.cppreference.com/w/cpp/container/vector.html)
 
 ## 분석
 
@@ -80,3 +78,7 @@ MyVector.exe --benchmark 10000
 Geometric Growth 방식은 메모리 여유 공간을 더 사용하는 대신 재할당 횟수를 줄였습니다. Linear Growth 방식은 최종 여유 공간은 적지만 재할당이 1,000회 발생하여 실행 시간이 크게 증가했습니다.
 
 이번 측정에서 MyVector Geometric Growth가 `std::vector`보다 빠르게 나타났지만, 측정 횟수가 각 방식당 1회이고 두 구현의 용량 증가 정책도 다릅니다. 따라서 해당 수치는 일반적인 우위가 아니라 현재 환경과 입력 조건에서 얻은 결과로 한정합니다.
+
+## 참고 문헌
+
+- [std::vector - cppreference](https://en.cppreference.com/w/cpp/container/vector.html)
