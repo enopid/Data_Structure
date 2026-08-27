@@ -230,14 +230,14 @@ struct BenchmarkResult {
     int final_capacity;
 };
 
-template <typename Push>
-BenchmarkResult measure(const std::string& name, int count, Push push) {
-    MyVector<int> values;
+template <typename T, typename Push>
+BenchmarkResult measure(const std::string& name, const std::vector<T>& input, Push push) {
+    MyVector<T> values;
     int reallocations = 0;
     int previous_capacity = values.capacity();
     const auto begin = std::chrono::steady_clock::now();
-    for (int i = 0; i < count; ++i) {
-        push(values, i);
+    for (const auto& value : input) {
+        push(values, value);
         if (values.capacity() != previous_capacity) {
             previous_capacity = values.capacity();
             ++reallocations;
@@ -279,13 +279,14 @@ BenchmarkResult measure_repeated(int repetitions, Measurement measurement) {
     return summary;
 }
 
-BenchmarkResult measure_std_vector(int count) {
-    std::vector<int> standard;
+template <typename T>
+BenchmarkResult measure_std_vector(const std::vector<T>& input) {
+    std::vector<T> standard;
     int reallocations = 0;
     std::size_t previous_capacity = standard.capacity();
     const auto begin = std::chrono::steady_clock::now();
-    for (int i = 0; i < count; ++i) {
-        standard.push_back(i);
+    for (const auto& value : input) {
+        standard.push_back(value);
         if (standard.capacity() != previous_capacity) {
             previous_capacity = standard.capacity();
             ++reallocations;
@@ -297,37 +298,38 @@ BenchmarkResult measure_std_vector(int count) {
             reallocations, static_cast<int>(standard.capacity())};
 }
 
-void run_benchmark(int count, int repetitions) {
+template <typename T>
+void run_benchmark(const std::vector<T>& input, int repetitions, const std::string& type_name) {
 #ifdef NDEBUG
     constexpr const char* build_configuration = "Release";
 #else
     constexpr const char* build_configuration = "Debug";
 #endif
 
-    MyVector<int>::set_growth_factor(1.5);
-    const auto default_growth = measure_repeated(repetitions, [count] {
-        return measure("MyVector Geometric Growth (factor 1.5 default)", count,
-            [](MyVector<int>& values, int value) { values.push_back(value); });
+    MyVector<T>::set_growth_factor(1.5);
+    const auto default_growth = measure_repeated(repetitions, [&input] {
+        return measure("MyVector Geometric Growth (factor 1.5 default)", input,
+            [](MyVector<T>& values, const T& value) { values.push_back(value); });
     });
-    MyVector<int>::set_growth_factor(2.0);
-    const auto doubled_growth = measure_repeated(repetitions, [count] {
-        return measure("MyVector Geometric Growth (factor 2.0 custom)", count,
-            [](MyVector<int>& values, int value) { values.push_back(value); });
+    MyVector<T>::set_growth_factor(2.0);
+    const auto doubled_growth = measure_repeated(repetitions, [&input] {
+        return measure("MyVector Geometric Growth (factor 2.0 custom)", input,
+            [](MyVector<T>& values, const T& value) { values.push_back(value); });
     });
-    const auto linear = measure_repeated(repetitions, [count] {
-        return measure("MyVector Linear Growth (+10 capacity)", count,
-            [](MyVector<int>& values, int value) { values.linear_push_back(value); });
+    const auto linear = measure_repeated(repetitions, [&input] {
+        return measure("MyVector Linear Growth (+10 capacity)", input,
+            [](MyVector<T>& values, const T& value) { values.linear_push_back(value); });
     });
-    const auto std_vector = measure_repeated(repetitions, [count] {
-        return measure_std_vector(count);
+    const auto std_vector = measure_repeated(repetitions, [&input] {
+        return measure_std_vector(input);
     });
-    MyVector<int>::set_growth_factor(1.5);
+    MyVector<T>::set_growth_factor(1.5);
 
     std::cout << "Benchmark configuration\n"
               << "  Current build     : " << build_configuration << " x64\n"
               << "  Recommended build : Release x64\n"
-              << "  Element type      : int\n"
-              << "  Elements per case : " << count << '\n'
+              << "  Element type      : " << type_name << '\n'
+              << "  Elements per case : " << input.size() << '\n'
               << "  Measurements      : " << repetitions << " per case\n"
               << "  Time unit         : microseconds (us)\n\n"
               << "Benchmark results\n";
@@ -335,7 +337,7 @@ void run_benchmark(int count, int repetitions) {
     int case_number = 0;
     for (const auto& result : {default_growth, doubled_growth, linear, std_vector}) {
         std::cout << "\n[Case " << ++case_number << "] " << result.name << '\n'
-                  << "  Elements inserted : " << count << '\n'
+                  << "  Elements inserted : " << input.size() << '\n'
                   << "  Average time      : " << result.average_microseconds << " us\n"
                   << "  Median time       : " << result.median_microseconds << " us\n"
                   << "  Minimum time      : " << result.minimum_microseconds << " us\n"
@@ -343,6 +345,30 @@ void run_benchmark(int count, int repetitions) {
                   << "  Reallocations     : " << result.reallocations << " times\n"
                   << "  Final capacity    : " << result.final_capacity << '\n';
     }
+}
+
+std::vector<int> make_int_input(int count) {
+    std::vector<int> input;
+    input.reserve(static_cast<std::size_t>(count));
+    for (int i = 0; i < count; ++i) input.push_back(i);
+    return input;
+}
+
+std::vector<std::string> make_string_input(int count) {
+    constexpr char characters[] =
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    constexpr int string_length = 24;
+    std::mt19937 random(20260827);
+    std::uniform_int_distribution<std::size_t> pick(0, sizeof(characters) - 2);
+    std::vector<std::string> input;
+    input.reserve(static_cast<std::size_t>(count));
+    for (int i = 0; i < count; ++i) {
+        std::string value;
+        value.reserve(string_length);
+        for (int j = 0; j < string_length; ++j) value.push_back(characters[pick(random)]);
+        input.push_back(std::move(value));
+    }
+    return input;
 }
 
 int run_tests() {
@@ -365,11 +391,19 @@ int main(int argc, char* argv[]) {
     if (argc > 1 && std::string(argv[1]) == "--benchmark") {
         const int count = argc > 2 ? std::stoi(argv[2]) : 100000;
         const int repetitions = argc > 3 ? std::stoi(argv[3]) : 10;
+        const std::string type = argc > 4 ? argv[4] : "int";
         if (count <= 0 || repetitions <= 0) {
             std::cerr << "Element count and repetitions must be positive integers.\n";
             return 1;
         }
-        run_benchmark(count, repetitions);
+        if (type == "int") {
+            run_benchmark(make_int_input(count), repetitions, "int");
+        } else if (type == "string") {
+            run_benchmark(make_string_input(count), repetitions, "std::string (24 random characters)");
+        } else {
+            std::cerr << "Element type must be 'int' or 'string'.\n";
+            return 1;
+        }
         return 0;
     }
     return run_tests();
