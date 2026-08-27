@@ -1,7 +1,10 @@
 #pragma once
- 
-#include<string> 
-#include<iostream> 
+
+
+#include <algorithm>
+#include <utility>
+#include <string> 
+#include <iostream> 
 
 class MyContainer abstract {
 public:

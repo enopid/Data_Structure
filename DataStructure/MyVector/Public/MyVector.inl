@@ -122,7 +122,7 @@ void MyVector<T>::reserve(int newcapacity) {
         memcpy(newData, _data, sizeof(T) * _size);
     }
     else {
-        for (int i = 0; i < _size; i++) new (newData + i) T(move_if_noexcept(_data[i]));
+        for (int i = 0; i < _size; i++) new (newData + i) T(std::move_if_noexcept(_data[i]));
         for (int i = 0; i < _size; i++) _data[i].~T();
     }
     free(_data);
@@ -140,7 +140,7 @@ void MyVector<T>::shrink_to_fit() {
         memcpy(newData, _data, sizeof(T) * _size);
     }
     else {
-        for (int i = 0; i < _size; i++) new (newData + i) T(move_if_noexcept(_data[i]));
+        for (int i = 0; i < _size; i++) new (newData + i) T(std::move_if_noexcept(_data[i]));
         for (int i = 0; i < _size; i++) _data[i].~T();
     }
     free(_data);
@@ -160,7 +160,7 @@ void MyVector<T>::insert(int pos, const T& val) {
     }
     else {
         new (_data + _size) T(std::move(_data[_size - 1]));
-		for (int i = _size-1; i > pos; i--) _data[i] = move(_data[i - 1]);
+		for (int i = _size-1; i > pos; i--) _data[i] = std::move(_data[i - 1]);
 		_data[pos].~T();
     }
     new (_data + pos) T(val);
