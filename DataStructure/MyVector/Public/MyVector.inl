@@ -236,4 +236,4 @@ void MyVector<T>::set_growth_factor(double growth_factor) {
 }
 
 template<typename T>
-double MyVector<T>::_growthFactor = 2;
+double MyVector<T>::_growthFactor = 1.5;

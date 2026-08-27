@@ -27,6 +27,7 @@
 
 - `set_growth_factor(double growth_factor)`
   - `push_back`에서 사용할 용량 증가 계수를 변경합니다.
+  - 기본 증가 계수는 MSVC `std::vector`와 유사한 `1.5`입니다.
   - 증가 계수에 따른 재할당 횟수, 메모리 여유 공간과 실행 시간의 변화를 비교하기 위한 기능입니다.
 - `linear_push_back(const T& val)`
   - 용량이 부족할 때 기존 용량에 `10`을 더해 선형적으로 확장합니다.
@@ -49,9 +50,10 @@
 | 복사·이동 | 복사/이동 생성자 및 복사/이동 대입 연산자 | PASS |
 | 객체 수명 | 비단순 타입의 생성, 이동, 소멸 및 잔존 객체 수 | PASS |
 | 무작위 비교 | 1,000회의 무작위 연산 결과를 `std::vector`와 비교 | PASS |
+| Growth Factor 변경 | 증가 계수 `1.5`와 `2.0`에서 예상한 용량으로 확장되는지 비교 | PASS |
 
 ```text
-7 passed, 0 failed
+8 passed, 0 failed
 ```
 
 ### 벤치마크 결과
@@ -71,13 +73,16 @@ MyVector.exe --benchmark 10000
 
 | 방식 | 실행 시간 | 재할당 횟수 | 최종 용량 |
 | --- | ---: | ---: | ---: |
-| MyVector Geometric Growth | 53μs | 14회 | 16,384 |
-| MyVector Linear Growth | 8,766μs | 1,000회 | 10,001 |
-| `std::vector` | 71μs | 24회 | 12,138 |
+| MyVector Geometric Growth 1.5 (기본값) | 49μs | 23회 | 12,138 |
+| MyVector Geometric Growth 2.0 (변경값) | 47μs | 14회 | 16,384 |
+| MyVector Linear Growth | 9,408μs | 1,000회 | 10,001 |
+| `std::vector` | 78μs | 24회 | 12,138 |
 
-Geometric Growth 방식은 메모리 여유 공간을 더 사용하는 대신 재할당 횟수를 줄였습니다. Linear Growth 방식은 최종 여유 공간은 적지만 재할당이 1,000회 발생하여 실행 시간이 크게 증가했습니다.
+기본 증가 계수 1.5에서 MyVector와 `std::vector`의 최종 용량은 12,138로 동일했습니다. 표시된 재할당 횟수가 23회와 24회로 다른 이유는 MyVector가 생성 시 확보하는 최초 capacity 1을 현재 측정 코드에서 재할당으로 집계하지 않는 반면, `std::vector`는 capacity 0에서 시작하여 최초 할당도 집계되기 때문입니다.
 
-이번 측정에서 MyVector Geometric Growth가 `std::vector`보다 빠르게 나타났지만, 측정 횟수가 각 방식당 1회이고 두 구현의 용량 증가 정책도 다릅니다. 따라서 해당 수치는 일반적인 우위가 아니라 현재 환경과 입력 조건에서 얻은 결과로 한정합니다.
+증가 계수를 2.0으로 변경하면 최종 여유 공간은 늘어나지만 재할당 횟수는 14회로 감소했습니다. Linear Growth 방식은 최종 여유 공간이 적은 대신 재할당이 1,000회 발생하여 실행 시간이 크게 증가했습니다.
+
+이번 측정에서 MyVector가 `std::vector`보다 빠르게 나타났지만 측정 횟수는 각 방식당 1회입니다. 따라서 해당 수치는 일반적인 우위가 아니라 현재 환경과 입력 조건에서 얻은 결과로 한정합니다.
 
 ## 참고 문헌
 

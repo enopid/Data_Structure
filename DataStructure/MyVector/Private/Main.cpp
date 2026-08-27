@@ -10,15 +10,17 @@ namespace {
 
 class TestRunner {
 public:
+    explicit TestRunner(int total) : total_(total) {}
+
     void run(const std::string& name, const std::function<void()>& test) {
         ++executed_;
         try {
             test();
             ++passed_;
-            std::cout << "[PASS " << executed_ << "/7] " << name << '\n';
+            std::cout << "[PASS " << executed_ << '/' << total_ << "] " << name << '\n';
         } catch (const std::exception& error) {
             ++failed_;
-            std::cout << "[FAIL " << executed_ << "/7] " << name
+            std::cout << "[FAIL " << executed_ << '/' << total_ << "] " << name
                       << " - " << error.what() << '\n';
         }
     }
@@ -29,6 +31,7 @@ public:
     }
 
 private:
+    int total_ = 0;
     int executed_ = 0;
     int passed_ = 0;
     int failed_ = 0;
@@ -200,6 +203,22 @@ void test_against_std_vector() {
     }
 }
 
+void test_growth_factor_change() {
+    MyVector<int>::set_growth_factor(1.5);
+    MyVector<int> default_growth;
+    for (int i = 0; i < 5; ++i) default_growth.push_back(i);
+    require(default_growth.capacity() == 6,
+            "growth factor 1.5 must produce capacity 6 after five pushes");
+
+    MyVector<int>::set_growth_factor(2.0);
+    MyVector<int> doubled_growth;
+    for (int i = 0; i < 5; ++i) doubled_growth.push_back(i);
+    require(doubled_growth.capacity() == 8,
+            "growth factor 2.0 must produce capacity 8 after five pushes");
+
+    MyVector<int>::set_growth_factor(1.5);
+}
+
 struct BenchmarkResult {
     std::string name;
     long long microseconds;
@@ -234,10 +253,13 @@ void run_benchmark(int count) {
     constexpr const char* build_configuration = "Debug";
 #endif
 
-    MyVector<int>::set_growth_factor(2.0);
-    const auto geometric = measure("MyVector Geometric Growth (factor 2.0)", count,
+    MyVector<int>::set_growth_factor(1.5);
+    const auto default_growth = measure("MyVector Geometric Growth (factor 1.5 default)", count,
         [](MyVector<int>& values, int value) { values.push_back(value); });
-    const auto linear = measure("MyVector (Linear Growth, +10 capacity)", count,
+    MyVector<int>::set_growth_factor(2.0);
+    const auto doubled_growth = measure("MyVector Geometric Growth (factor 2.0 custom)", count,
+        [](MyVector<int>& values, int value) { values.push_back(value); });
+    const auto linear = measure("MyVector Linear Growth (+10 capacity)", count,
         [](MyVector<int>& values, int value) { values.linear_push_back(value); });
 
     std::vector<int> standard;
@@ -265,15 +287,20 @@ void run_benchmark(int count) {
               << "  Elements per case : " << count << '\n'
               << "  Measurements      : 1 per case\n"
               << "  Time unit         : microseconds (us)\n\n"
-              << "case,elements,time_us,reallocations,final_capacity\n";
-    for (const auto& result : {geometric, linear, std_vector}) {
-        std::cout << result.name << ',' << count << ',' << result.microseconds << ','
-                  << result.reallocations << ',' << result.final_capacity << '\n';
+              << "Benchmark results\n";
+
+    int case_number = 0;
+    for (const auto& result : {default_growth, doubled_growth, linear, std_vector}) {
+        std::cout << "\n[Case " << ++case_number << "] " << result.name << '\n'
+                  << "  Elements inserted : " << count << '\n'
+                  << "  Elapsed time      : " << result.microseconds << " us\n"
+                  << "  Reallocations     : " << result.reallocations << " times\n"
+                  << "  Final capacity    : " << result.final_capacity << '\n';
     }
 }
 
 int run_tests() {
-    TestRunner runner;
+    TestRunner runner(8);
     std::cout << "MyVector validity tests\n\n";
     runner.run("Default state (size, capacity, empty, data)", test_default_state);
     runner.run("Push, pop and element access", test_push_and_access);
@@ -282,6 +309,7 @@ int run_tests() {
     runner.run("Copy and move semantics", test_copy_and_move);
     runner.run("Non-trivial object lifetime and destruction", test_non_trivial_lifetime);
     runner.run("1,000 random operations against std::vector", test_against_std_vector);
+    runner.run("Growth factor change (1.5 versus 2.0)", test_growth_factor_change);
     return runner.report();
 }
 
