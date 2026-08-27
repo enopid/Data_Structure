@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <functional>
+#include <limits>
 #include <random>
 #include <stdexcept>
 #include <vector>
@@ -221,7 +222,10 @@ void test_growth_factor_change() {
 
 struct BenchmarkResult {
     std::string name;
-    long long microseconds;
+    long long average_microseconds;
+    long long median_microseconds;
+    long long minimum_microseconds;
+    long long maximum_microseconds;
     int reallocations;
     int final_capacity;
 };
@@ -240,28 +244,42 @@ BenchmarkResult measure(const std::string& name, int count, Push push) {
         }
     }
     const auto end = std::chrono::steady_clock::now();
-    return {name,
-            std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count(),
+    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    return {name, elapsed, elapsed, elapsed, elapsed,
             reallocations,
             values.capacity()};
 }
 
-void run_benchmark(int count) {
-#ifdef NDEBUG
-    constexpr const char* build_configuration = "Release";
-#else
-    constexpr const char* build_configuration = "Debug";
-#endif
+template <typename Measurement>
+BenchmarkResult measure_repeated(int repetitions, Measurement measurement) {
+    BenchmarkResult summary;
+    long long total = 0;
+    std::vector<long long> elapsed_times;
+    elapsed_times.reserve(static_cast<std::size_t>(repetitions));
+    summary.minimum_microseconds = std::numeric_limits<long long>::max();
+    summary.maximum_microseconds = 0;
+    for (int i = 0; i < repetitions; ++i) {
+        const auto result = measurement();
+        if (i == 0) {
+            summary.name = result.name;
+            summary.reallocations = result.reallocations;
+            summary.final_capacity = result.final_capacity;
+        }
+        total += result.average_microseconds;
+        elapsed_times.push_back(result.average_microseconds);
+        summary.minimum_microseconds = std::min(summary.minimum_microseconds, result.average_microseconds);
+        summary.maximum_microseconds = std::max(summary.maximum_microseconds, result.average_microseconds);
+    }
+    summary.average_microseconds = total / repetitions;
+    std::sort(elapsed_times.begin(), elapsed_times.end());
+    const auto middle = elapsed_times.size() / 2;
+    summary.median_microseconds = elapsed_times.size() % 2 == 1
+        ? elapsed_times[middle]
+        : (elapsed_times[middle - 1] + elapsed_times[middle]) / 2;
+    return summary;
+}
 
-    MyVector<int>::set_growth_factor(1.5);
-    const auto default_growth = measure("MyVector Geometric Growth (factor 1.5 default)", count,
-        [](MyVector<int>& values, int value) { values.push_back(value); });
-    MyVector<int>::set_growth_factor(2.0);
-    const auto doubled_growth = measure("MyVector Geometric Growth (factor 2.0 custom)", count,
-        [](MyVector<int>& values, int value) { values.push_back(value); });
-    const auto linear = measure("MyVector Linear Growth (+10 capacity)", count,
-        [](MyVector<int>& values, int value) { values.linear_push_back(value); });
-
+BenchmarkResult measure_std_vector(int count) {
     std::vector<int> standard;
     int reallocations = 0;
     std::size_t previous_capacity = standard.capacity();
@@ -274,18 +292,43 @@ void run_benchmark(int count) {
         }
     }
     const auto end = std::chrono::steady_clock::now();
-    const BenchmarkResult std_vector{
-        "std::vector (MSVC STL)",
-        std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count(),
-        reallocations,
-        static_cast<int>(standard.capacity())};
+    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    return {"std::vector (MSVC STL)", elapsed, elapsed, elapsed, elapsed,
+            reallocations, static_cast<int>(standard.capacity())};
+}
+
+void run_benchmark(int count, int repetitions) {
+#ifdef NDEBUG
+    constexpr const char* build_configuration = "Release";
+#else
+    constexpr const char* build_configuration = "Debug";
+#endif
+
+    MyVector<int>::set_growth_factor(1.5);
+    const auto default_growth = measure_repeated(repetitions, [count] {
+        return measure("MyVector Geometric Growth (factor 1.5 default)", count,
+            [](MyVector<int>& values, int value) { values.push_back(value); });
+    });
+    MyVector<int>::set_growth_factor(2.0);
+    const auto doubled_growth = measure_repeated(repetitions, [count] {
+        return measure("MyVector Geometric Growth (factor 2.0 custom)", count,
+            [](MyVector<int>& values, int value) { values.push_back(value); });
+    });
+    const auto linear = measure_repeated(repetitions, [count] {
+        return measure("MyVector Linear Growth (+10 capacity)", count,
+            [](MyVector<int>& values, int value) { values.linear_push_back(value); });
+    });
+    const auto std_vector = measure_repeated(repetitions, [count] {
+        return measure_std_vector(count);
+    });
+    MyVector<int>::set_growth_factor(1.5);
 
     std::cout << "Benchmark configuration\n"
               << "  Current build     : " << build_configuration << " x64\n"
               << "  Recommended build : Release x64\n"
               << "  Element type      : int\n"
               << "  Elements per case : " << count << '\n'
-              << "  Measurements      : 1 per case\n"
+              << "  Measurements      : " << repetitions << " per case\n"
               << "  Time unit         : microseconds (us)\n\n"
               << "Benchmark results\n";
 
@@ -293,7 +336,10 @@ void run_benchmark(int count) {
     for (const auto& result : {default_growth, doubled_growth, linear, std_vector}) {
         std::cout << "\n[Case " << ++case_number << "] " << result.name << '\n'
                   << "  Elements inserted : " << count << '\n'
-                  << "  Elapsed time      : " << result.microseconds << " us\n"
+                  << "  Average time      : " << result.average_microseconds << " us\n"
+                  << "  Median time       : " << result.median_microseconds << " us\n"
+                  << "  Minimum time      : " << result.minimum_microseconds << " us\n"
+                  << "  Maximum time      : " << result.maximum_microseconds << " us\n"
                   << "  Reallocations     : " << result.reallocations << " times\n"
                   << "  Final capacity    : " << result.final_capacity << '\n';
     }
@@ -318,7 +364,12 @@ int run_tests() {
 int main(int argc, char* argv[]) {
     if (argc > 1 && std::string(argv[1]) == "--benchmark") {
         const int count = argc > 2 ? std::stoi(argv[2]) : 100000;
-        run_benchmark(count);
+        const int repetitions = argc > 3 ? std::stoi(argv[3]) : 10;
+        if (count <= 0 || repetitions <= 0) {
+            std::cerr << "Element count and repetitions must be positive integers.\n";
+            return 1;
+        }
+        run_benchmark(count, repetitions);
         return 0;
     }
     return run_tests();
