@@ -17,8 +17,8 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 
 | 자료구조 | 상태 | 설명 |
 | --- | --- | --- |
-| [MyVector](DataStructure/MyVector/README.md) | 구현 중 | 연속 메모리 기반 동적 배열 |
-| MyList | 준비 중 | Double Linked List |
+| [MyVector](DataStructure/MyVector/README.md) | 구현 완료 | continuous memory based dynamic array |
+| MyList | 구현 중 | Double Linked List |
 | MyPriorityQueue | 준비 중 | Heap + Decreasing Key |
 | MyStack/MyQueue | 준비 중 | Linked Block List |
 | MyUnordered_Set/Map | 준비 중 | Hash Table |
