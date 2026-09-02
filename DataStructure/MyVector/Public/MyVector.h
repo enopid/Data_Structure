@@ -7,10 +7,10 @@ class MyVector : public MyContainer {
 public:
     MyVector();
     MyVector(int N, const T& val = T());
-    MyVector(const MyVector&);
-    MyVector& operator=(const MyVector&);
-    MyVector(MyVector&&) noexcept;
-    MyVector& operator=(MyVector&&) noexcept;
+    MyVector(const MyVector& other);
+    MyVector& operator=(const MyVector& other);
+    MyVector(MyVector&& other)            noexcept;
+    MyVector& operator=(MyVector&& other) noexcept;
     ~MyVector();
 
     //member access 

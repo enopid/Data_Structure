@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.37411.7
@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{C8D527
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyVector", "MyVector\Default\MyVector.vcxproj", "{624C8D50-CF3A-4231-841B-5F20EE13D3A6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyList", "MyList\Default\MyList.vcxproj", "{497D0250-E0A1-4248-A57A-8A90673B5403}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -18,6 +20,14 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Debug|x64.ActiveCfg = Debug|x64
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Debug|x64.Build.0 = Debug|x64
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Debug|x86.ActiveCfg = Debug|Win32
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Debug|x86.Build.0 = Debug|Win32
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Release|x64.ActiveCfg = Release|x64
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Release|x64.Build.0 = Release|x64
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Release|x86.ActiveCfg = Release|Win32
+		{497D0250-E0A1-4248-A57A-8A90673B5403}.Release|x86.Build.0 = Release|Win32
 		{624C8D50-CF3A-4231-841B-5F20EE13D3A6}.Debug|x64.ActiveCfg = Debug|x64
 		{624C8D50-CF3A-4231-841B-5F20EE13D3A6}.Debug|x64.Build.0 = Debug|x64
 		{624C8D50-CF3A-4231-841B-5F20EE13D3A6}.Debug|x86.ActiveCfg = Debug|Win32
