@@ -1,46 +1,15 @@
 #include "MyVector.h"
+#include "TestUtils.h"
 
 #include <chrono>
-#include <functional>
 #include <limits>
 #include <random>
-#include <stdexcept>
 #include <vector>
 
 namespace {
 
-class TestRunner {
-public:
-    explicit TestRunner(int total) : total_(total) {}
-
-    void run(const std::string& name, const std::function<void()>& test) {
-        ++executed_;
-        try {
-            test();
-            ++passed_;
-            std::cout << "[PASS " << executed_ << '/' << total_ << "] " << name << '\n';
-        } catch (const std::exception& error) {
-            ++failed_;
-            std::cout << "[FAIL " << executed_ << '/' << total_ << "] " << name
-                      << " - " << error.what() << '\n';
-        }
-    }
-
-    int report() const {
-        std::cout << "\n" << passed_ << " passed, " << failed_ << " failed\n";
-        return failed_ == 0 ? 0 : 1;
-    }
-
-private:
-    int total_ = 0;
-    int executed_ = 0;
-    int passed_ = 0;
-    int failed_ = 0;
-};
-
-void require(bool condition, const std::string& message) {
-    if (!condition) throw std::runtime_error(message);
-}
+using test_support::require;
+using test_support::TestRunner;
 
 template <typename T>
 void require_equal(MyVector<T>& actual, const std::vector<T>& expected) {
@@ -300,12 +269,6 @@ BenchmarkResult measure_std_vector(const std::vector<T>& input) {
 
 template <typename T>
 void run_benchmark(const std::vector<T>& input, int repetitions, const std::string& type_name) {
-#ifdef NDEBUG
-    constexpr const char* build_configuration = "Release";
-#else
-    constexpr const char* build_configuration = "Debug";
-#endif
-
     MyVector<T>::set_growth_factor(1.5);
     const auto default_growth = measure_repeated(repetitions, [&input] {
         return measure("MyVector Geometric Growth (factor 1.5 default)", input,
@@ -326,7 +289,7 @@ void run_benchmark(const std::vector<T>& input, int repetitions, const std::stri
     MyVector<T>::set_growth_factor(1.5);
 
     std::cout << "Benchmark configuration\n"
-              << "  Current build     : " << build_configuration << " x64\n"
+              << "  Current build     : " << test_support::build_configuration() << " x64\n"
               << "  Recommended build : Release x64\n"
               << "  Element type      : " << type_name << '\n'
               << "  Elements per case : " << input.size() << '\n'
@@ -345,30 +308,6 @@ void run_benchmark(const std::vector<T>& input, int repetitions, const std::stri
                   << "  Reallocations     : " << result.reallocations << " times\n"
                   << "  Final capacity    : " << result.final_capacity << '\n';
     }
-}
-
-std::vector<int> make_int_input(int count) {
-    std::vector<int> input;
-    input.reserve(static_cast<std::size_t>(count));
-    for (int i = 0; i < count; ++i) input.push_back(i);
-    return input;
-}
-
-std::vector<std::string> make_string_input(int count) {
-    constexpr char characters[] =
-        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    constexpr int string_length = 24;
-    std::mt19937 random(20260827);
-    std::uniform_int_distribution<std::size_t> pick(0, sizeof(characters) - 2);
-    std::vector<std::string> input;
-    input.reserve(static_cast<std::size_t>(count));
-    for (int i = 0; i < count; ++i) {
-        std::string value;
-        value.reserve(string_length);
-        for (int j = 0; j < string_length; ++j) value.push_back(characters[pick(random)]);
-        input.push_back(std::move(value));
-    }
-    return input;
 }
 
 int run_tests() {
@@ -397,9 +336,10 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         if (type == "int") {
-            run_benchmark(make_int_input(count), repetitions, "int");
+            run_benchmark(test_support::make_int_input(count), repetitions, "int");
         } else if (type == "string") {
-            run_benchmark(make_string_input(count), repetitions, "std::string (24 random characters)");
+            run_benchmark(test_support::make_string_input(count, 20260827), repetitions,
+                          "std::string (24 random characters)");
         } else {
             std::cerr << "Element type must be 'int' or 'string'.\n";
             return 1;

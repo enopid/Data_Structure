@@ -54,6 +54,29 @@
 8 passed, 0 failed
 ```
 
+<details>
+<summary>실제 유효성 테스트 코드 보기</summary>
+
+아래 함수가 8개의 테스트를 순서대로 실행합니다. 각 테스트 함수의 전체 검증 코드는 [`Private/Main.cpp`](Private/Main.cpp)에서 확인할 수 있습니다.
+
+```cpp
+int run_tests() {
+    TestRunner runner(8);
+    std::cout << "MyLinkedList validity tests\n\n";
+    runner.run("Default and fill constructors", test_default_and_fill_constructors);
+    runner.run("Push, pop, clear and element access", test_push_pop_and_access);
+    runner.run("Insert and erase with std::string", test_insert_and_erase);
+    runner.run("Forward, reverse and const iteration", test_forward_reverse_and_const_iteration);
+    runner.run("Copy construction, assignment and self-assignment", test_copy_semantics);
+    runner.run("Move construction, assignment and empty source", test_move_semantics);
+    runner.run("Non-trivial object lifetime and destruction", test_non_trivial_lifetime);
+    runner.run("1,000 random operations against std::list", test_against_std_list);
+    return runner.report();
+}
+```
+
+</details>
+
 ### 벤치마크 실행
 
 ```powershell

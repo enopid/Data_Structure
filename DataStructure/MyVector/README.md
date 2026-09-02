@@ -62,6 +62,29 @@
 8 passed, 0 failed
 ```
 
+<details>
+<summary>실제 유효성 테스트 코드 보기</summary>
+
+아래 함수가 8개의 테스트를 순서대로 실행합니다. 각 테스트 함수의 전체 검증 코드는 [`Private/Main.cpp`](Private/Main.cpp)에서 확인할 수 있습니다.
+
+```cpp
+int run_tests() {
+    TestRunner runner(8);
+    std::cout << "MyVector validity tests\n\n";
+    runner.run("Default state (size, capacity, empty, data)", test_default_state);
+    runner.run("Push, pop and element access", test_push_and_access);
+    runner.run("Capacity operations (reserve, resize, shrink, clear)", test_capacity_operations);
+    runner.run("Insert and erase with std::string", test_insert_and_erase);
+    runner.run("Copy and move semantics", test_copy_and_move);
+    runner.run("Non-trivial object lifetime and destruction", test_non_trivial_lifetime);
+    runner.run("1,000 random operations against std::vector", test_against_std_vector);
+    runner.run("Growth factor change (1.5 versus 2.0)", test_growth_factor_change);
+    return runner.report();
+}
+```
+
+</details>
+
 ### 벤치마크 결과
 
 - 빌드 구성: `Release x64`

@@ -18,7 +18,7 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 | 자료구조 | 상태 | 설명 |
 | --- | --- | --- |
 | [MyVector](DataStructure/MyVector/README.md) | 구현 완료 | continuous memory based dynamic array |
-| MyList | 구현 중 | Double Linked List |
+| [MyList](DataStructure/MyList/README.md) | 구현 완료 | Doubly Linked List |
 | MyPriorityQueue | 준비 중 | Heap + Decreasing Key |
 | MyStack/MyQueue | 준비 중 | Linked Block List |
 | MyUnordered_Set/Map | 준비 중 | Hash Table |
@@ -28,12 +28,15 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 
 ```text
 DataStructure/
-├─ Common/                  # 공통 인터페이스
+├─ Common/                  # 공통 인터페이스 및 테스트 유틸리티
 ├─ MyVector/
 │  ├─ Public/              # 자료구조 구현
 │  ├─ Private/             # 실행 및 테스트 진입점
 │  └─ README.md            # 구현 개요와 분석
-└─ MyList/                 # 추후 구현 예정
+├─ MyList/
+│  ├─ Public/              # 자료구조 구현
+│  ├─ Private/             # 실행 및 테스트 진입점
+│  └─ README.md            # 구현 개요와 분석
 Result/                    # 성능 측정 결과와 그래프
 ```
 
