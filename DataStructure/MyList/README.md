@@ -55,23 +55,181 @@
 ```
 
 <details>
-<summary>실제 유효성 테스트 코드 보기</summary>
+<summary>실제 유효성 테스트 함수 전체 보기</summary>
 
-아래 함수가 8개의 테스트를 순서대로 실행합니다. 각 테스트 함수의 전체 검증 코드는 [`Private/Main.cpp`](Private/Main.cpp)에서 확인할 수 있습니다.
+아래 코드는 실행된 각 `test_*` 함수의 실제 본문입니다. 테스트 러너와 벤치마크 코드는 제외했습니다.
 
 ```cpp
-int run_tests() {
-    TestRunner runner(8);
-    std::cout << "MyLinkedList validity tests\n\n";
-    runner.run("Default and fill constructors", test_default_and_fill_constructors);
-    runner.run("Push, pop, clear and element access", test_push_pop_and_access);
-    runner.run("Insert and erase with std::string", test_insert_and_erase);
-    runner.run("Forward, reverse and const iteration", test_forward_reverse_and_const_iteration);
-    runner.run("Copy construction, assignment and self-assignment", test_copy_semantics);
-    runner.run("Move construction, assignment and empty source", test_move_semantics);
-    runner.run("Non-trivial object lifetime and destruction", test_non_trivial_lifetime);
-    runner.run("1,000 random operations against std::list", test_against_std_list);
-    return runner.report();
+void test_default_and_fill_constructors() {
+    MyLinkedList<int> empty;
+    require(empty.empty(), "new list must be empty");
+    require(empty.size() == 0, "new list size must be zero");
+    require(!(empty.begin() != empty.end()), "empty begin/end mismatch");
+
+    MyLinkedList<int> default_values(3);
+    require_equal(default_values, std::list<int>(3));
+
+    MyLinkedList<int> filled(4, 7);
+    require_equal(filled, std::list<int>(4, 7));
+}
+
+void test_push_pop_and_access() {
+    MyLinkedList<int> actual;
+    std::list<int> expected;
+    for (int value = 0; value < 50; ++value) {
+        if (value % 2 == 0) {
+            actual.push_front(value);
+            expected.push_front(value);
+        } else {
+            actual.push_back(value);
+            expected.push_back(value);
+        }
+    }
+    require_equal(actual, expected);
+    require(actual.front() == expected.front(), "front mismatch");
+    require(actual.back() == expected.back(), "back mismatch");
+
+    for (int count = 0; count < 10; ++count) {
+        actual.pop_front();
+        expected.pop_front();
+        actual.pop_back();
+        expected.pop_back();
+    }
+    require_equal(actual, expected);
+    actual.clear();
+    require(actual.empty(), "clear did not empty list");
+}
+
+void test_insert_and_erase() {
+    MyLinkedList<std::string> actual;
+    std::list<std::string> expected;
+    for (const auto& value : {"alpha", "beta", "gamma"}) {
+        actual.push_back(value);
+        expected.push_back(value);
+    }
+
+    actual.insert(iterator_at(actual, 1), "inserted");
+    expected.insert(std::next(expected.begin(), 1), "inserted");
+    actual.insert(actual.end(), "tail");
+    expected.insert(expected.end(), "tail");
+    require_equal(actual, expected);
+
+    actual.erase(iterator_at(actual, 2));
+    expected.erase(std::next(expected.begin(), 2));
+    actual.erase(actual.end());
+    require_equal(actual, expected);
+}
+
+void test_forward_reverse_and_const_iteration() {
+    MyLinkedList<int> values;
+    for (int value = 1; value <= 5; ++value) values.push_back(value);
+
+    std::vector<int> forward;
+    for (auto it = values.begin(); it != values.end(); ++it) forward.push_back(*it);
+    require(forward == std::vector<int>({1, 2, 3, 4, 5}), "forward iteration mismatch");
+
+    std::vector<int> reverse;
+    for (auto it = values.rbegin(); it != values.rend(); ++it) reverse.push_back(*it);
+    require(reverse == std::vector<int>({5, 4, 3, 2, 1}), "reverse iteration mismatch");
+
+    const MyLinkedList<int>& const_values = values;
+    int sum = 0;
+    for (auto it = const_values.cbegin(); it != const_values.cend(); ++it) sum += *it;
+    require(sum == 15, "const iteration mismatch");
+    require(const_values.front() == 1 && const_values.back() == 5,
+            "const front/back mismatch");
+
+    std::ostringstream output;
+    output << values;
+    require(output.str() == "1 2 3 4 5 ", "stream output mismatch");
+}
+
+void test_copy_semantics() {
+    MyLinkedList<std::string> original;
+    original.push_back("alpha");
+    original.push_back("beta");
+
+    MyLinkedList<std::string> copied(original);
+    copied.front() = "changed";
+    require(original.front() == "alpha", "copy constructor shared nodes");
+
+    MyLinkedList<std::string> assigned;
+    assigned.push_back("old");
+    assigned = original;
+    require_equal(assigned, std::list<std::string>({"alpha", "beta"}));
+
+    assigned = assigned;
+    require_equal(assigned, std::list<std::string>({"alpha", "beta"}));
+}
+
+void test_move_semantics() {
+    MyLinkedList<std::string> source;
+    source.push_back("alpha");
+    source.push_back("beta");
+    MyLinkedList<std::string> moved(std::move(source));
+    require_equal(moved, std::list<std::string>({"alpha", "beta"}));
+    require(source.empty(), "move-constructed source is not empty");
+
+    MyLinkedList<std::string> assigned;
+    assigned.push_back("old");
+    assigned = std::move(moved);
+    require_equal(assigned, std::list<std::string>({"alpha", "beta"}));
+    require(moved.empty(), "move-assigned source is not empty");
+
+    MyLinkedList<std::string> empty_source;
+    assigned = std::move(empty_source);
+    require(assigned.empty(), "moving an empty list did not produce an empty list");
+}
+
+void test_non_trivial_lifetime() {
+    TrackedValue::reset();
+    {
+        MyLinkedList<TrackedValue> values;
+        TrackedValue first(1);
+        TrackedValue second(2);
+        values.push_back(first);
+        values.push_back(second);
+        values.erase(values.begin());
+        require(values.size() == 1 && values.front().value == 2,
+                "tracked value mismatch");
+        require(TrackedValue::copies >= 2, "values were not copied into nodes");
+    }
+    require(TrackedValue::alive == 0, "tracked object lifetime leak");
+}
+
+void test_against_std_list() {
+    MyLinkedList<int> actual;
+    std::list<int> expected;
+    std::mt19937 random(20260902);
+
+    for (int step = 0; step < 1000; ++step) {
+        const int operation = static_cast<int>(random() % 6);
+        if (operation == 0 || expected.empty()) {
+            const int value = static_cast<int>(random() % 10000);
+            actual.push_back(value);
+            expected.push_back(value);
+        } else if (operation == 1) {
+            const int value = static_cast<int>(random() % 10000);
+            actual.push_front(value);
+            expected.push_front(value);
+        } else if (operation == 2) {
+            actual.pop_back();
+            expected.pop_back();
+        } else if (operation == 3) {
+            actual.pop_front();
+            expected.pop_front();
+        } else if (operation == 4) {
+            const int position = static_cast<int>(random() % (expected.size() + 1));
+            const int value = static_cast<int>(random() % 10000);
+            actual.insert(iterator_at(actual, position), value);
+            expected.insert(std::next(expected.begin(), position), value);
+        } else {
+            const int position = static_cast<int>(random() % expected.size());
+            actual.erase(iterator_at(actual, position));
+            expected.erase(std::next(expected.begin(), position));
+        }
+        require_equal(actual, expected);
+    }
 }
 ```
 

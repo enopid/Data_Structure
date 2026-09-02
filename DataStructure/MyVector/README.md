@@ -63,23 +63,138 @@
 ```
 
 <details>
-<summary>실제 유효성 테스트 코드 보기</summary>
+<summary>실제 유효성 테스트 함수 전체 보기</summary>
 
-아래 함수가 8개의 테스트를 순서대로 실행합니다. 각 테스트 함수의 전체 검증 코드는 [`Private/Main.cpp`](Private/Main.cpp)에서 확인할 수 있습니다.
+아래 코드는 실행된 각 `test_*` 함수의 실제 본문입니다. 테스트 러너와 벤치마크 코드는 제외했습니다.
 
 ```cpp
-int run_tests() {
-    TestRunner runner(8);
-    std::cout << "MyVector validity tests\n\n";
-    runner.run("Default state (size, capacity, empty, data)", test_default_state);
-    runner.run("Push, pop and element access", test_push_and_access);
-    runner.run("Capacity operations (reserve, resize, shrink, clear)", test_capacity_operations);
-    runner.run("Insert and erase with std::string", test_insert_and_erase);
-    runner.run("Copy and move semantics", test_copy_and_move);
-    runner.run("Non-trivial object lifetime and destruction", test_non_trivial_lifetime);
-    runner.run("1,000 random operations against std::vector", test_against_std_vector);
-    runner.run("Growth factor change (1.5 versus 2.0)", test_growth_factor_change);
-    return runner.report();
+void test_default_state() {
+    MyVector<int> values;
+    require(values.empty(), "new vector must be empty");
+    require(values.size() == 0, "new vector size must be zero");
+    require(values.capacity() >= 1, "new vector must have initial storage");
+    require(values.data() != nullptr, "data pointer must be valid");
+}
+
+void test_push_and_access() {
+    MyVector<int> actual;
+    std::vector<int> expected;
+    for (int i = 0; i < 100; ++i) {
+        actual.push_back(i * 3);
+        expected.push_back(i * 3);
+    }
+    require_equal(actual, expected);
+    require(actual.front() == expected.front(), "front mismatch");
+    require(actual.back() == expected.back(), "back mismatch");
+    for (int i = 0; i < 25; ++i) {
+        actual.pop_back();
+        expected.pop_back();
+    }
+    require_equal(actual, expected);
+}
+
+void test_capacity_operations() {
+    MyVector<int> values(4, 7);
+    values.reserve(32);
+    require(values.capacity() >= 32, "reserve did not increase capacity");
+    require(values.size() == 4, "reserve changed size");
+    values.resize(10, 9);
+    require(values.size() == 10, "resize did not grow size");
+    for (int i = 0; i < 4; ++i) require(values[i] == 7, "resize changed old value");
+    for (int i = 4; i < 10; ++i) require(values[i] == 9, "resize fill value mismatch");
+    values.resize(3);
+    values.shrink_to_fit();
+    require(values.size() == 3 && values.capacity() == 3, "shrink_to_fit mismatch");
+    values.clear();
+    require(values.empty(), "clear did not empty vector");
+}
+
+void test_insert_and_erase() {
+    MyVector<std::string> actual(3, "base");
+    std::vector<std::string> expected(3, "base");
+    actual.insert(1, "inserted");
+    expected.insert(expected.begin() + 1, "inserted");
+    actual.erase(2);
+    expected.erase(expected.begin() + 2);
+    require_equal(actual, expected);
+}
+
+void test_copy_and_move() {
+    MyVector<std::string> original;
+    original.push_back("alpha");
+    original.push_back("beta");
+    MyVector<std::string> copied(original);
+    copied[0] = "changed";
+    require(original[0] == "alpha", "copy constructor shared storage");
+    MyVector<std::string> assigned;
+    assigned = original;
+    require(assigned.size() == 2 && assigned[1] == "beta", "copy assignment mismatch");
+    MyVector<std::string> moved(std::move(copied));
+    require(moved.size() == 2 && moved[0] == "changed", "move constructor mismatch");
+    require(copied.size() == 0, "moved-from vector is not empty");
+    MyVector<std::string> move_assigned;
+    move_assigned = std::move(assigned);
+    require(move_assigned.size() == 2, "move assignment mismatch");
+    require(assigned.size() == 0, "move-assigned source is not empty");
+}
+
+void test_non_trivial_lifetime() {
+    TrackedValue::reset();
+    {
+        MyVector<TrackedValue> values;
+        TrackedValue first(1);
+        TrackedValue second(2);
+        values.push_back(first);
+        values.push_back(second);
+        values.reserve(16);
+        values.erase(0);
+        require(values.size() == 1 && values[0].value == 2, "tracked value mismatch");
+        require(TrackedValue::moves > 0, "reallocation did not move values");
+    }
+    require(TrackedValue::alive == 0, "tracked object lifetime leak");
+}
+
+void test_against_std_vector() {
+    MyVector<int> actual;
+    std::vector<int> expected;
+    std::mt19937 random(20260827);
+    for (int step = 0; step < 1000; ++step) {
+        const int operation = static_cast<int>(random() % 4);
+        if (operation == 0 || expected.empty()) {
+            const int value = static_cast<int>(random() % 10000);
+            actual.push_back(value);
+            expected.push_back(value);
+        } else if (operation == 1) {
+            actual.pop_back();
+            expected.pop_back();
+        } else if (operation == 2) {
+            const int position = static_cast<int>(random() % expected.size());
+            const int value = static_cast<int>(random() % 10000);
+            actual.insert(position, value);
+            expected.insert(expected.begin() + position, value);
+        } else {
+            const int position = static_cast<int>(random() % expected.size());
+            actual.erase(position);
+            expected.erase(expected.begin() + position);
+        }
+        require_equal(actual, expected);
+    }
+}
+
+void test_growth_factor_change() {
+    MyVector<int>::set_growth_factor(1.5);
+    MyVector<int> default_growth;
+    for (int i = 0; i < 5; ++i) default_growth.push_back(i);
+    require(default_growth.capacity() == 6,
+            "growth factor 1.5 must produce capacity 6 after five pushes");
+
+    MyVector<int>::set_growth_factor(2.0);
+    MyVector<int> doubled_growth;
+    for (int i = 0; i < 5; ++i) doubled_growth.push_back(i);
+    require(doubled_growth.capacity() == 8,
+            "growth factor 2.0 must produce capacity 8 after five pushes");
+
+    MyVector<int>::set_growth_factor(1.5);
 }
 ```
 
