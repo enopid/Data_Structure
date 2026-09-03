@@ -19,8 +19,8 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 | --- | --- | --- |
 | [MyVector](DataStructure/MyVector/README.md) | 구현 완료 | continuous memory based dynamic array |
 | [MyList](DataStructure/MyList/README.md) | 구현 완료 | Doubly Linked List |
-| [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현 및 유효성 검증 완료 | Binary Heap + Handle 기반 Decrease-Key |
-| MyStack/MyQueue | 준비 중 | Linked Block List |
+| [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현 완료 | Binary Heap + Handle 기반 Decrease-Key |
+| MyStack/MyQueue | 구현 중 | Linked Block List |
 | MyUnordered_Set/Map | 준비 중 | Hash Table |
 | MyOrdered_Set/Map | 준비 중 | Red Black Tree |
 
