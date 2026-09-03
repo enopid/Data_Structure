@@ -207,24 +207,36 @@ void test_clear_copy_and_move() {
 
 동일한 입력에 대해 `MyPriorityQueue`와 `std::priority_queue`의 삽입 및 제거 성능을 비교합니다.
 
+```powershell
+MyPriorityQueue.exe --benchmark 100000 30
+```
+
+첫 번째 숫자는 각 큐에 삽입할 원소 수이고, 두 번째 숫자는 컨테이너별 반복 측정 횟수입니다. 생략하면 각각 100,000개와 10회를 사용합니다.
+
 #### 측정 조건
 
 - 빌드 구성: `Release x64`
 - 비교 대상: `MyPriorityQueue`, `std::priority_queue`
 - 측정 연산: 전체 원소 `push` 후 우선순위 순서로 전체 `pop`
-- 입력 크기: 추후 측정 시 기록
-- 측정 횟수: 명령행 인자로 지정
+- 입력: 고정 시드로 생성한 0~1,000,000 범위의 정수 100,000개
+- 측정 횟수: 각 컨테이너 30회
 - 시간 단위: 마이크로초(μs)
 - 통계: 평균값, 중앙값, 최솟값, 최댓값
+- 입력 생성 시간: 측정에서 제외
+- 결과 검증: 모든 제거 원소의 합계가 같은지 checksum으로 확인
 
 #### 결과
 
 | 컨테이너 | 평균 | 중앙값 | 최소 | 최대 |
 | --- | ---: | ---: | ---: | ---: |
-| MyPriorityQueue | - | - | - | - |
-| `std::priority_queue` | - | - | - | - |
+| MyPriorityQueue | 12,237μs | 12,238μs | 11,170μs | 13,894μs |
+| `std::priority_queue` | 4,887μs | 4,880μs | 4,766μs | 5,038μs |
 
-> 벤치마크 코드와 Release 측정 결과를 추가한 뒤 작성합니다.
+두 구현의 checksum은 `49,787,350,884`로 동일했습니다. 이번 조건에서 `std::priority_queue`의 중앙값은 MyPriorityQueue보다 약 2.51배 빨랐습니다.
+
+MyPriorityQueue는 일반적인 힙 연산 외에도 각 원소의 핸들 슬롯을 생성하고, 노드를 교환할 때마다 슬롯의 힙 인덱스를 갱신합니다. 이 부하 테스트에서는 `update`나 `erase`를 사용하지 않으므로 해당 관리 비용만 추가되고 핸들의 이점은 활용되지 않습니다. 따라서 이 결과는 일반적인 `push`·`pop` 부하를 비교하는 기준이며, decrease-key를 사용하는 Dijkstra 비교는 별도로 측정합니다.
+
+실행 시간은 시스템 상태, 캐시 및 메모리 할당자의 영향을 받으므로 수치는 현재 환경과 입력 조건에 한정합니다.
 
 ### 성능 테스트 2: Decrease-Key 기반 Dijkstra
 
@@ -260,3 +272,5 @@ void test_clear_copy_and_move() {
 ## 참고 문헌
 
 - [std::priority_queue - cppreference](https://en.cppreference.com/w/cpp/container/priority_queue.html)
+- [Boost.Heap Data Structures](https://www.boost.org/doc/libs/latest/doc/html/heap/data_structures.html)
+- [boost::heap::d_ary_heap - mutable handle, update, decrease, erase](https://www.boost.org/doc/libs/latest/doc/html/doxygen/classboost_1_1heap_1_1d__ary__heap.html)

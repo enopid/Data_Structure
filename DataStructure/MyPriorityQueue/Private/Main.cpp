@@ -1,8 +1,14 @@
 #include "MyPriorityQueue.h"
 #include "TestUtils.h"
 
+#include <algorithm>
+#include <chrono>
 #include <functional>
+#include <limits>
+#include <queue>
+#include <random>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -123,9 +129,113 @@ void test_clear_copy_and_move() {
     require(!original.valid(old_handle), "reused slot revived a stale handle");
 }
 
+struct BenchmarkResult {
+    std::string name;
+    long long average_microseconds = 0;
+    long long median_microseconds = 0;
+    long long minimum_microseconds = 0;
+    long long maximum_microseconds = 0;
+    long long checksum = 0;
+};
+
+template <typename Work>
+BenchmarkResult measure_repeated(const std::string& name, int repetitions, Work work) {
+    BenchmarkResult result;
+    result.name = name;
+    result.minimum_microseconds = std::numeric_limits<long long>::max();
+    std::vector<long long> elapsed_times;
+    elapsed_times.reserve(static_cast<std::size_t>(repetitions));
+
+    for (int repetition = 0; repetition < repetitions; ++repetition) {
+        const auto begin = std::chrono::steady_clock::now();
+        const long long checksum = work();
+        const auto end = std::chrono::steady_clock::now();
+        const auto elapsed =
+            std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+
+        result.checksum = checksum;
+        result.average_microseconds += elapsed;
+        result.minimum_microseconds = std::min(result.minimum_microseconds, elapsed);
+        result.maximum_microseconds = std::max(result.maximum_microseconds, elapsed);
+        elapsed_times.push_back(elapsed);
+    }
+
+    result.average_microseconds /= repetitions;
+    std::sort(elapsed_times.begin(), elapsed_times.end());
+    const std::size_t middle = elapsed_times.size() / 2;
+    result.median_microseconds = elapsed_times.size() % 2 == 1
+        ? elapsed_times[middle]
+        : (elapsed_times[middle - 1] + elapsed_times[middle]) / 2;
+    return result;
+}
+
+void print_benchmark_result(int case_number, const BenchmarkResult& result,
+                            std::size_t element_count) {
+    std::cout << "\n[Case " << case_number << "] " << result.name << '\n'
+              << "  Elements          : " << element_count << '\n'
+              << "  Average time      : " << result.average_microseconds << " us\n"
+              << "  Median time       : " << result.median_microseconds << " us\n"
+              << "  Minimum time      : " << result.minimum_microseconds << " us\n"
+              << "  Maximum time      : " << result.maximum_microseconds << " us\n"
+              << "  Checksum          : " << result.checksum << '\n';
+}
+
+int run_benchmark(int element_count, int repetitions) {
+    std::mt19937 random(20260903);
+    std::uniform_int_distribution<int> value_distribution(0, 1'000'000);
+    std::vector<int> input;
+    input.reserve(static_cast<std::size_t>(element_count));
+    for (int i = 0; i < element_count; ++i) input.push_back(value_distribution(random));
+
+    const auto custom = measure_repeated("MyPriorityQueue", repetitions, [&input] {
+        MyPriorityQueue<int> queue;
+        long long checksum = 0;
+        for (int value : input) queue.push(value);
+        while (!queue.empty()) {
+            checksum += queue.top();
+            queue.pop();
+        }
+        return checksum;
+    });
+
+    const auto standard = measure_repeated("std::priority_queue", repetitions, [&input] {
+        std::priority_queue<int> queue;
+        long long checksum = 0;
+        for (int value : input) queue.push(value);
+        while (!queue.empty()) {
+            checksum += queue.top();
+            queue.pop();
+        }
+        return checksum;
+    });
+
+    require(custom.checksum == standard.checksum, "benchmark result checksum mismatch");
+
+    std::cout << "Priority queue load benchmark\n"
+              << "  Current build     : " << test_support::build_configuration() << " x64\n"
+              << "  Recommended build : Release x64\n"
+              << "  Workload          : push all, then pop all\n"
+              << "  Elements per case : " << input.size() << '\n'
+              << "  Measurements      : " << repetitions << " per case\n"
+              << "  Time unit         : microseconds (us)\n";
+    print_benchmark_result(1, custom, input.size());
+    print_benchmark_result(2, standard, input.size());
+    return 0;
+}
+
 } // namespace
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc > 1 && std::string(argv[1]) == "--benchmark") {
+        const int element_count = argc > 2 ? std::stoi(argv[2]) : 100000;
+        const int repetitions = argc > 3 ? std::stoi(argv[3]) : 10;
+        if (element_count <= 0 || repetitions <= 0) {
+            std::cerr << "Element count and repetitions must be positive integers.\n";
+            return 1;
+        }
+        return run_benchmark(element_count, repetitions);
+    }
+
     std::cout << "MyPriorityQueue validity tests ("
               << test_support::build_configuration() << ")\n\n";
 
