@@ -55,9 +55,7 @@
 ```
 
 <details>
-<summary>실제 유효성 테스트 함수 전체 보기</summary>
-
-아래 코드는 실행된 각 `test_*` 함수의 실제 본문입니다. 테스트 러너와 벤치마크 코드는 제외했습니다.
+<summary>1. 생성자 테스트 코드</summary>
 
 ```cpp
 void test_default_and_fill_constructors() {
@@ -72,7 +70,14 @@ void test_default_and_fill_constructors() {
     MyLinkedList<int> filled(4, 7);
     require_equal(filled, std::list<int>(4, 7));
 }
+```
 
+</details>
+
+<details>
+<summary>2. 추가·제거·원소 접근 테스트 코드</summary>
+
+```cpp
 void test_push_pop_and_access() {
     MyLinkedList<int> actual;
     std::list<int> expected;
@@ -99,7 +104,14 @@ void test_push_pop_and_access() {
     actual.clear();
     require(actual.empty(), "clear did not empty list");
 }
+```
 
+</details>
+
+<details>
+<summary>3. 삽입·삭제 테스트 코드</summary>
+
+```cpp
 void test_insert_and_erase() {
     MyLinkedList<std::string> actual;
     std::list<std::string> expected;
@@ -119,7 +131,14 @@ void test_insert_and_erase() {
     actual.erase(actual.end());
     require_equal(actual, expected);
 }
+```
 
+</details>
+
+<details>
+<summary>4. 정방향·역방향·상수 반복자 테스트 코드</summary>
+
+```cpp
 void test_forward_reverse_and_const_iteration() {
     MyLinkedList<int> values;
     for (int value = 1; value <= 5; ++value) values.push_back(value);
@@ -143,7 +162,14 @@ void test_forward_reverse_and_const_iteration() {
     output << values;
     require(output.str() == "1 2 3 4 5 ", "stream output mismatch");
 }
+```
 
+</details>
+
+<details>
+<summary>5. 복사 테스트 코드</summary>
+
+```cpp
 void test_copy_semantics() {
     MyLinkedList<std::string> original;
     original.push_back("alpha");
@@ -161,7 +187,14 @@ void test_copy_semantics() {
     assigned = assigned;
     require_equal(assigned, std::list<std::string>({"alpha", "beta"}));
 }
+```
 
+</details>
+
+<details>
+<summary>6. 이동 테스트 코드</summary>
+
+```cpp
 void test_move_semantics() {
     MyLinkedList<std::string> source;
     source.push_back("alpha");
@@ -180,7 +213,14 @@ void test_move_semantics() {
     assigned = std::move(empty_source);
     require(assigned.empty(), "moving an empty list did not produce an empty list");
 }
+```
 
+</details>
+
+<details>
+<summary>7. 비단순 객체 수명 테스트 코드</summary>
+
+```cpp
 void test_non_trivial_lifetime() {
     TrackedValue::reset();
     {
@@ -196,7 +236,14 @@ void test_non_trivial_lifetime() {
     }
     require(TrackedValue::alive == 0, "tracked object lifetime leak");
 }
+```
 
+</details>
+
+<details>
+<summary>8. std::list 무작위 비교 테스트 코드</summary>
+
+```cpp
 void test_against_std_list() {
     MyLinkedList<int> actual;
     std::list<int> expected;

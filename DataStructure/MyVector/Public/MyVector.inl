@@ -80,9 +80,9 @@ MyVector<T>::~MyVector() {
 
 //member access 
 template<typename T>
-int MyVector<T>::size()     { return _size;     }
+int MyVector<T>::size()     const { return _size;     }
 template<typename T>
-int MyVector<T>::capacity() { return _capacity; }
+int MyVector<T>::capacity() const { return _capacity; }
 template<typename T>
 T* MyVector<T>::data()      { return _data;     }
 
@@ -111,7 +111,7 @@ void MyVector<T>::clear() {
 }
 
 template<typename T>
-bool MyVector<T>::empty() { return (_size == 0); }
+bool MyVector<T>::empty() const { return (_size == 0); }
 
 template<typename T>
 void MyVector<T>::reserve(int newcapacity) {
@@ -203,14 +203,23 @@ inline void MyVector<T>::print_info()
 template<typename T>
 inline void MyVector<T>::print_elements()
 {
-    std::cout << "elements \t: ";
-    for (size_t i = 0; i < _size; i++) std::cout << _data[i] << "\t";
-    std::cout << "\n";
+    if constexpr (myvector_detail::is_ostreamable<T>::value)
+    {
+        std::cout << "elements \t: ";
+        for (size_t i = 0; i < _size; i++) std::cout << _data[i] << "\t";
+        std::cout << "\n";
+    }
 }
 
 //element access 
 template<typename T>
 T& MyVector<T>::operator[] (int ind) {
+    return _data[ind];
+}
+
+template<typename T>
+inline const T& MyVector<T>::operator[](int ind) const
+{
     return _data[ind];
 }
 

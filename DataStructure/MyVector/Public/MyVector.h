@@ -2,6 +2,21 @@
 
 #include "MyContainer.h"
 
+#include <type_traits>
+#include <utility>
+
+namespace myvector_detail {
+
+template <typename T, typename = void>
+struct is_ostreamable : std::false_type {};
+
+template <typename T>
+struct is_ostreamable<T, std::void_t<decltype(std::declval<std::ostream&>()
+                                              << std::declval<const T&>())>>
+    : std::true_type {};
+
+} // namespace myvector_detail
+
 template<typename T>
 class MyVector : public MyContainer {
 public:
@@ -14,15 +29,15 @@ public:
     ~MyVector();
 
     //member access 
-    int size();
-    int capacity();
+    int size() const;
+    int capacity() const;
     T*  data();
 
     //capacity modification 
     void resize(int newsize);
     void resize(int newsize, const T& val);
     void clear();
-    bool empty();
+    bool empty() const;
     void reserve(int newcapacity);
     void shrink_to_fit();
 
@@ -34,6 +49,7 @@ public:
 
     //element access 
     T& operator[] (int ind);
+    const T& operator[] (int ind) const;
     T& front();
     T& back();
 

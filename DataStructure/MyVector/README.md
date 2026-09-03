@@ -63,9 +63,7 @@
 ```
 
 <details>
-<summary>실제 유효성 테스트 함수 전체 보기</summary>
-
-아래 코드는 실행된 각 `test_*` 함수의 실제 본문입니다. 테스트 러너와 벤치마크 코드는 제외했습니다.
+<summary>1. 기본 상태 테스트 코드</summary>
 
 ```cpp
 void test_default_state() {
@@ -75,7 +73,14 @@ void test_default_state() {
     require(values.capacity() >= 1, "new vector must have initial storage");
     require(values.data() != nullptr, "data pointer must be valid");
 }
+```
 
+</details>
+
+<details>
+<summary>2. 추가·제거·원소 접근 테스트 코드</summary>
+
+```cpp
 void test_push_and_access() {
     MyVector<int> actual;
     std::vector<int> expected;
@@ -92,7 +97,14 @@ void test_push_and_access() {
     }
     require_equal(actual, expected);
 }
+```
 
+</details>
+
+<details>
+<summary>3. 용량 관리 테스트 코드</summary>
+
+```cpp
 void test_capacity_operations() {
     MyVector<int> values(4, 7);
     values.reserve(32);
@@ -108,7 +120,14 @@ void test_capacity_operations() {
     values.clear();
     require(values.empty(), "clear did not empty vector");
 }
+```
 
+</details>
+
+<details>
+<summary>4. 삽입·삭제 테스트 코드</summary>
+
+```cpp
 void test_insert_and_erase() {
     MyVector<std::string> actual(3, "base");
     std::vector<std::string> expected(3, "base");
@@ -118,7 +137,14 @@ void test_insert_and_erase() {
     expected.erase(expected.begin() + 2);
     require_equal(actual, expected);
 }
+```
 
+</details>
+
+<details>
+<summary>5. 복사·이동 테스트 코드</summary>
+
+```cpp
 void test_copy_and_move() {
     MyVector<std::string> original;
     original.push_back("alpha");
@@ -137,7 +163,14 @@ void test_copy_and_move() {
     require(move_assigned.size() == 2, "move assignment mismatch");
     require(assigned.size() == 0, "move-assigned source is not empty");
 }
+```
 
+</details>
+
+<details>
+<summary>6. 비단순 객체 수명 테스트 코드</summary>
+
+```cpp
 void test_non_trivial_lifetime() {
     TrackedValue::reset();
     {
@@ -153,7 +186,14 @@ void test_non_trivial_lifetime() {
     }
     require(TrackedValue::alive == 0, "tracked object lifetime leak");
 }
+```
 
+</details>
+
+<details>
+<summary>7. std::vector 무작위 비교 테스트 코드</summary>
+
+```cpp
 void test_against_std_vector() {
     MyVector<int> actual;
     std::vector<int> expected;
@@ -180,7 +220,14 @@ void test_against_std_vector() {
         require_equal(actual, expected);
     }
 }
+```
 
+</details>
+
+<details>
+<summary>8. Growth Factor 변경 테스트 코드</summary>
+
+```cpp
 void test_growth_factor_change() {
     MyVector<int>::set_growth_factor(1.5);
     MyVector<int> default_growth;
