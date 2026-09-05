@@ -20,6 +20,7 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 | [MyVector](DataStructure/MyVector/README.md) | 구현 완료 | continuous memory based dynamic array |
 | [MyList](DataStructure/MyList/README.md) | 구현 완료 | Doubly Linked List |
 | [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현 및 유효성 검증 완료 | Binary Heap + Handle 기반 Decrease-Key |
+| [MyDeque](DataStructure/MyDeque/README.md) | 구현·유효성 검증·성능 측정 완료 | Chunked Ring Buffer Deque |
 | MyStack/MyQueue | 준비 중 | Linked Block List |
 | MyUnordered_Set/Map | 준비 중 | Hash Table |
 | MyOrdered_Set/Map | 준비 중 | Red Black Tree |
@@ -38,6 +39,7 @@ DataStructure/
 │  ├─ Private/             # 실행 및 테스트 진입점
 │  └─ README.md            # 구현 개요와 분석
 ├─ MyPriorityQueue/         # Binary Heap 기반 Priority Queue
+├─ MyDeque/                 # Deque
 Result/                    # 성능 측정 결과와 그래프
 ```
 
