@@ -213,53 +213,83 @@ BenchmarkResult measure_repeated(const std::string& name, int repetitions, Work 
     return result;
 }
 
-template <int ChunkSize>
-BenchmarkResult measure_my_deque(const std::vector<int>& input, int repetitions) {
-    return measure_repeated(
-        "MyDeque<int, " + std::to_string(ChunkSize) + ">", repetitions, [&input] {
-            MyDeque<int, ChunkSize> values;
-            for (std::size_t i = 0; i < input.size(); ++i) {
-                if ((i & 1U) == 0) values.push_front(input[i]);
-                else values.push_back(input[i]);
-            }
+struct BenchmarkOperation {
+    int type;
+    int value;
+};
 
-            long long checksum = 0;
-            bool take_front = true;
-            while (!values.empty()) {
-                if (take_front) {
-                    checksum += values.front();
-                    values.pop_front();
-                } else {
-                    checksum += values.back();
-                    values.pop_back();
-                }
-                take_front = !take_front;
-            }
-            return checksum;
+std::vector<BenchmarkOperation> make_mixed_operations(int operation_count) {
+    std::vector<BenchmarkOperation> operations;
+    operations.reserve(static_cast<std::size_t>(operation_count));
+    std::mt19937 random(20260906);
+    int current_size = 0;
+
+    for (int step = 0; step < operation_count; ++step) {
+        const bool push = current_size == 0 || random() % 10 < 6;
+        const bool front = (random() & 1U) == 0;
+        if (push) {
+            operations.push_back({front ? 0 : 1, step});
+            ++current_size;
+        } else {
+            operations.push_back({front ? 2 : 3, 0});
+            --current_size;
+        }
+    }
+    return operations;
+}
+
+template <typename Deque>
+long long run_mixed_workload(const std::vector<BenchmarkOperation>& operations) {
+    Deque values;
+    long long checksum = 0;
+    long long pop_order = 0;
+
+    for (const auto& operation : operations) {
+        switch (operation.type) {
+        case 0:
+            values.push_front(operation.value);
+            break;
+        case 1:
+            values.push_back(operation.value);
+            break;
+        case 2:
+            checksum += static_cast<long long>(values.front()) * ++pop_order;
+            values.pop_front();
+            break;
+        default:
+            checksum += static_cast<long long>(values.back()) * ++pop_order;
+            values.pop_back();
+            break;
+        }
+    }
+
+    bool take_front = true;
+    while (!values.empty()) {
+        if (take_front) {
+            checksum += static_cast<long long>(values.front()) * ++pop_order;
+            values.pop_front();
+        } else {
+            checksum += static_cast<long long>(values.back()) * ++pop_order;
+            values.pop_back();
+        }
+        take_front = !take_front;
+    }
+    return checksum;
+}
+
+template <int ChunkSize>
+BenchmarkResult measure_my_deque(
+    const std::vector<BenchmarkOperation>& operations, int repetitions) {
+    return measure_repeated(
+        "MyDeque<int, " + std::to_string(ChunkSize) + ">", repetitions, [&operations] {
+            return run_mixed_workload<MyDeque<int, ChunkSize>>(operations);
         });
 }
 
-BenchmarkResult measure_std_deque(const std::vector<int>& input, int repetitions) {
-    return measure_repeated("std::deque<int>", repetitions, [&input] {
-        std::deque<int> values;
-        for (std::size_t i = 0; i < input.size(); ++i) {
-            if ((i & 1U) == 0) values.push_front(input[i]);
-            else values.push_back(input[i]);
-        }
-
-        long long checksum = 0;
-        bool take_front = true;
-        while (!values.empty()) {
-            if (take_front) {
-                checksum += values.front();
-                values.pop_front();
-            } else {
-                checksum += values.back();
-                values.pop_back();
-            }
-            take_front = !take_front;
-        }
-        return checksum;
+BenchmarkResult measure_std_deque(
+    const std::vector<BenchmarkOperation>& operations, int repetitions) {
+    return measure_repeated("std::deque<int>", repetitions, [&operations] {
+        return run_mixed_workload<std::deque<int>>(operations);
     });
 }
 
@@ -279,14 +309,14 @@ void print_benchmark_result(int case_number, const BenchmarkResult& result,
               << "  Checksum          : " << result.checksum << '\n';
 }
 
-int run_benchmark(int element_count, int repetitions) {
-    const auto input = test_support::make_int_input(element_count);
-    const auto chunk16 = measure_my_deque<16>(input, repetitions);
-    const auto chunk64 = measure_my_deque<64>(input, repetitions);
-    const auto chunk256 = measure_my_deque<256>(input, repetitions);
-    const auto chunk1024 = measure_my_deque<1024>(input, repetitions);
-    const auto chunk4096 = measure_my_deque<4096>(input, repetitions);
-    const auto standard = measure_std_deque(input, repetitions);
+int run_benchmark(int operation_count, int repetitions) {
+    const auto operations = make_mixed_operations(operation_count);
+    const auto chunk16 = measure_my_deque<16>(operations, repetitions);
+    const auto chunk64 = measure_my_deque<64>(operations, repetitions);
+    const auto chunk256 = measure_my_deque<256>(operations, repetitions);
+    const auto chunk1024 = measure_my_deque<1024>(operations, repetitions);
+    const auto chunk4096 = measure_my_deque<4096>(operations, repetitions);
+    const auto standard = measure_std_deque(operations, repetitions);
 
     for (const auto& result : {chunk16, chunk64, chunk256, chunk1024, chunk4096}) {
         require(result.checksum == standard.checksum, "benchmark checksum mismatch");
@@ -296,8 +326,9 @@ int run_benchmark(int element_count, int repetitions) {
               << "  Current build     : " << test_support::build_configuration() << " x64\n"
               << "  Recommended build : Release x64\n"
               << "  Element type      : int\n"
-              << "  Workload          : alternating push_front/push_back, then alternating pop\n"
-              << "  Elements per case : " << element_count << '\n'
+              << "  Workload          : mixed push_front/push_back/pop_front/pop_back\n"
+              << "  Push/pop ratio    : approximately 60/40, then drain remaining elements\n"
+              << "  Operations        : " << operation_count << '\n'
               << "  Measurements      : " << repetitions << " per case\n"
               << "  Time unit         : microseconds (us)\n";
 
@@ -314,13 +345,13 @@ int run_benchmark(int element_count, int repetitions) {
 
 int main(int argc, char* argv[]) {
     if (argc > 1 && std::string(argv[1]) == "--benchmark") {
-        const int element_count = argc > 2 ? std::stoi(argv[2]) : 10000;
+        const int operation_count = argc > 2 ? std::stoi(argv[2]) : 100000;
         const int repetitions = argc > 3 ? std::stoi(argv[3]) : 10;
-        if (element_count <= 0 || repetitions <= 0) {
-            std::cerr << "Element count and repetitions must be positive integers.\n";
+        if (operation_count <= 0 || repetitions <= 0) {
+            std::cerr << "Operation count and repetitions must be positive integers.\n";
             return 1;
         }
-        return run_benchmark(element_count, repetitions);
+        return run_benchmark(operation_count, repetitions);
     }
 
     std::cout << "MyDeque validity tests ("
