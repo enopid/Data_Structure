@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files"><UniqueIdentifier>{83B078F8-D646-4335-B165-F1D022EA599D}</UniqueIdentifier><Extensions>cpp;c;cc;cxx</Extensions></Filter>
+    <Filter Include="Header Files"><UniqueIdentifier>{5F361178-79E4-4A35-9D39-345532562752}</UniqueIdentifier><Extensions>h;hpp;inl</Extensions></Filter>
+  </ItemGroup>
+  <ItemGroup><ClCompile Include="..\Private\Main.cpp"><Filter>Source Files</Filter></ClCompile></ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Public\MyOrderedSet.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="..\Public\MyOrderedMap.h"><Filter>Header Files</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Public\MyOrderedSet.inl"><Filter>Header Files</Filter></None>
+    <None Include="..\Public\MyOrderedMap.inl"><Filter>Header Files</Filter></None>
+  </ItemGroup>
+</Project>

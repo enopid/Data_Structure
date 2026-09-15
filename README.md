@@ -21,8 +21,8 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 | [MyList](DataStructure/MyList/README.md) | 구현 완료 | Doubly Linked List |
 | [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현 완료 | Binary Heap + Handle 기반 Decrease-Key |
 | [MyDeque](DataStructure/MyDeque/README.md) | 구현 완료 | Chunked Ring Buffer Deque |
-| MyUnordered_Set/Map | 준비 중 | Hash Table |
-| MyOrdered_Set/Map | 준비 중 | Red Black Tree |
+| [MyUnorderedHash](DataStructure/MyUnorderedHash/README.md) | 구현·분석 진행 중 | Hash Table 기반 Set/Map/MultiSet/MultiMap; Release 유효성 테스트 9개 통과, 로드 팩터별 조회 측정 |
+| [MyOrderedTree](DataStructure/MyOrderedTree/README.md) | 프로젝트 구성 완료 | Red Black Tree 기반 Set/Map |
 
 ## 프로젝트 구성
 
@@ -51,7 +51,7 @@ Result/                    # 성능 측정 결과와 그래프
 - 빌드 조건: 최적화가 적용된 `Release x64` 구성을 기준으로 합니다.
 - 주요 지표: 입력 크기에 따른 실행 시간, 재할당 횟수, 용량 증가 정책에 따른 차이를 확인합니다.
 
-현재 저장소에는 정식 벤치마크 결과가 포함되어 있지 않습니다. 측정값이 확보되면 각 자료구조의 README에는 구현 세부사항 대신 비교 그래프와 해석을 중심으로 추가합니다.
+자료구조별 측정 조건과 결과는 각 프로젝트 README에 기록합니다. 현재 해시 프로젝트에는 로드 팩터별 정수 키 조회 결과가 포함되어 있습니다.
 
 ## 개발 환경
 

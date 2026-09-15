@@ -183,6 +183,8 @@ inline MyLinkedList<T>& MyLinkedList<T>::operator=(const MyLinkedList<T>& other)
 template<typename T>
 inline MyLinkedList<T>::MyLinkedList(MyLinkedList<T>&& other) : MyLinkedList()
 {
+	if (other._size == 0) return;
+
 	_size							= other._size;
 	_SentinelNode->next				= other._SentinelNode->next;
 	_SentinelNode->prev				= other._SentinelNode->prev;
@@ -206,6 +208,10 @@ inline MyLinkedList<T>& MyLinkedList<T>::operator=(MyLinkedList<T>&& other) noex
 		curNode = curNode->next;
 		delete tmpNode;
 	}
+	_SentinelNode->next = _SentinelNode;
+	_SentinelNode->prev = _SentinelNode;
+	_size = 0;
+	if (other._size == 0) return *this;
 
 	_size							= other._size;
 	_SentinelNode->next				= other._SentinelNode->next;
