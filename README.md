@@ -17,41 +17,43 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 
 | 자료구조 | 상태 | 설명 |
 | --- | --- | --- |
-| [MyVector](DataStructure/MyVector/README.md) | 구현 완료 | continuous memory based dynamic array |
-| [MyList](DataStructure/MyList/README.md) | 구현 완료 | Doubly Linked List |
-| [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현 완료 | Binary Heap + Handle 기반 Decrease-Key |
-| [MyDeque](DataStructure/MyDeque/README.md) | 구현 완료 | Chunked Ring Buffer Deque |
-| [MyUnorderedHash](DataStructure/MyUnorderedHash/README.md) | 구현·분석 진행 중 | Hash Table 기반 Set/Map/MultiSet/MultiMap; Release 유효성 테스트 9개 통과, 로드 팩터별 조회 측정 |
-| [MyOrderedTree](DataStructure/MyOrderedTree/README.md) | 프로젝트 구성 완료 | Red Black Tree 기반 Set/Map |
+| [MyVector](DataStructure/MyVector/README.md) | 구현·분석 | 연속 메모리 기반 동적 배열 |
+| [MyList](DataStructure/MyList/README.md) | 구현·분석 | 양방향 연결 리스트 |
+| [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현·분석 | Binary Heap과 Handle 기반 Decrease-Key |
+| [MyDeque](DataStructure/MyDeque/README.md) | 구현·분석 | Chunked Ring Buffer Deque |
+| [MyUnorderedHash](DataStructure/MyUnorderedHash/README.md) | 구현·분석 | Hash Table 기반 Set/Map/MultiSet/MultiMap; 유효성 테스트 9개 통과, 로드 팩터별 조회 측정 |
+| [MyOrderedTree](DataStructure/MyOrderedTree/README.md) | 구성만 완료 | Red-Black Tree 기반 Set/Map 구현 예정 |
 
 ## 프로젝트 구성
 
 ```text
 DataStructure/
-├─ Common/                  # 공통 인터페이스 및 테스트 유틸리티
+├─ Common/             # 공통 인터페이스와 테스트 유틸리티
 ├─ MyVector/
-│  ├─ Public/              # 자료구조 구현
-│  ├─ Private/             # 실행 및 테스트 진입점
-│  └─ README.md            # 구현 개요와 분석
 ├─ MyList/
-│  ├─ Public/              # 자료구조 구현
-│  ├─ Private/             # 실행 및 테스트 진입점
-│  └─ README.md            # 구현 개요와 분석
-├─ MyPriorityQueue/         # Binary Heap 기반 Priority Queue
-├─ MyDeque/                 # Deque
-Result/                    # 성능 측정 결과와 그래프
+├─ MyPriorityQueue/
+├─ MyDeque/
+├─ MyUnorderedHash/
+└─ MyOrderedTree/      # 구현 전 프로젝트 뼈대
+
+각 프로젝트/
+├─ Public/             # 자료구조 헤더와 템플릿 정의
+├─ Private/            # 실행·유효성·부하 테스트 진입점
+├─ Default/            # Visual Studio 프로젝트 설정
+└─ README.md           # 구현 개요, 테스트 코드와 측정 결과
 ```
 
 ## 성능 측정
 
-각 자료구조는 동일한 입력 크기와 빌드 환경에서 표준 라이브러리 구현과 비교하는 것을 원칙으로 합니다.
+완성된 각 자료구조의 `Private/Main.cpp`에서 자체 유효성 테스트를 실행하고, 대응하는 표준 라이브러리 컨테이너와 부하 테스트를 비교합니다. 자세한 테스트 함수와 실제 결과는 프로젝트별 README에 기록합니다.
 
-- 시간 측정: 반복 실행한 연산의 경과 시간을 측정하고 평균값을 사용합니다.
-- 비교 대상: 대응하는 C++ 표준 컨테이너를 기준으로 합니다.
-- 빌드 조건: 최적화가 적용된 `Release x64` 구성을 기준으로 합니다.
-- 주요 지표: 입력 크기에 따른 실행 시간, 재할당 횟수, 용량 증가 정책에 따른 차이를 확인합니다.
+- 유효성 검증: 중복·빈 상태·복사·이동 등 자료구조별 주요 경로를 확인합니다.
+- 시간 측정: 연산을 여러 번 반복해 경과 시간을 측정하고 평균·중앙값을 표시합니다.
+- 비교 대상: 대응하는 MSVC STL 컨테이너를 사용합니다.
+- 빌드 조건: 최적화가 적용된 `Release x64`를 기준으로 합니다.
+- 측정 지표: 자료구조에 따라 실행 시간, 재할당 횟수, 청크 크기 또는 로드 팩터를 비교합니다.
 
-자료구조별 측정 조건과 결과는 각 프로젝트 README에 기록합니다. 현재 해시 프로젝트에는 로드 팩터별 정수 키 조회 결과가 포함되어 있습니다.
+측정 대상 연산과 입력 조건은 프로젝트마다 다릅니다. 예를 들어 해시 프로젝트의 로드 팩터 비교는 정수 키 **조회만** 측정하므로 삽입·삭제 성능까지 대표하지 않습니다. 아직 구현 전인 MyOrderedTree에는 측정 결과가 없습니다.
 
 ## 개발 환경
 
