@@ -96,7 +96,7 @@ void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
 typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::iterator<false> MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::Find(_Key_Type key)
 {
-	return iterator<false>();
+	return iterator<false>(FindNode(key), this);
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>

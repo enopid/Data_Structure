@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <type_traits>
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
 class MyRedBlackTree {
@@ -26,6 +27,7 @@ public:
     public:
 		using reference = typename std::conditional<IsConst, const _Key_Value_Type&, _Key_Value_Type&>::type;
 		using pointer	= typename std::conditional<IsConst, const _Key_Value_Type*, _Key_Value_Type*>::type;
+		using owner_pointer = typename std::conditional<IsConst, const MyRedBlackTree*, MyRedBlackTree*>::type;
         friend class MyRedBlackTree<
             _Key_Type,
             _Value_Type,
@@ -34,9 +36,10 @@ public:
             IsMulti
         >;
 
-        iterator(FTreeNode* _pNode) : pNode(_pNode){}
+        iterator(FTreeNode* _pNode, owner_pointer _pOwner) : pNode(_pNode), pOwner(_pOwner) {}
         iterator& operator =(const iterator& other)       { 
-            pNode = other.pNode; 
+            pNode       = other.pNode; 
+            pOwner      = other.pOwner;
             return *this;
         };
         bool	  operator!=(const iterator& other) const { return other.pNode != pNode; };
@@ -66,9 +69,11 @@ public:
         }
         iterator&   operator--() {
             if (!pNode) {
-                pNode = pRootNode;
+                if (!pOwner || !pOwner->pRootNode)
+                    throw std::out_of_range("invalid iterator!");
+
+                pNode = pOwner->pRootNode;
                 while (!pNode->pRightNode->IsNIL())  pNode = pNode->pRightNode;
-                pNode = pNode->pRightNode;
                 return *this;
             }
             
@@ -98,7 +103,8 @@ public:
             return static_cast<pointer>(&(pNode->value));
         }
     private:
-        FTreeNode* pNode = nullptr;
+        FTreeNode*    pNode  = nullptr;
+        owner_pointer pOwner = nullptr;
     };
 public:
     MyRedBlackTree();
@@ -116,22 +122,22 @@ public:
 
 
     iterator<false>			begin() {
-        if (!pRootNode) return iterator<false>(nullptr);
+        if (!pRootNode) return iterator<false>(nullptr, this);
         auto _pNode = pRootNode;
         while (!_pNode->pLeftNode->IsNIL())  _pNode = _pNode->pLeftNode;
-        return iterator<false>(_pNode);
+        return iterator<false>(_pNode, this);
     }
     iterator<false>			end() {
-        return iterator<false>(nullptr);
+        return iterator<false>(nullptr, this);
     }
     iterator<true>			cbegin()	const {
-        if (!pRootNode) return iterator<true>(nullptr);
+        if (!pRootNode) return iterator<true>(nullptr, this);
         auto _pNode = pRootNode;
         while (!_pNode->pLeftNode->IsNIL())  _pNode = _pNode->pLeftNode;
-        return iterator<true>(_pNode);
+        return iterator<true>(_pNode, this);
     }
     iterator<true>			cend()		const {
-        return iterator<true>(nullptr);
+        return iterator<true>(nullptr, this);
     }
 
 private:
@@ -156,4 +162,3 @@ protected:
 };
 
 #include "MyRedBlackTree.inl"
-
