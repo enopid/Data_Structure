@@ -22,7 +22,7 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 | [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현·분석 | Binary Heap과 Handle 기반 Decrease-Key |
 | [MyDeque](DataStructure/MyDeque/README.md) | 구현·분석 | Chunked Ring Buffer Deque |
 | [MyUnorderedHash](DataStructure/MyUnorderedHash/README.md) | 구현·분석 | Hash Table 기반 Set/Map/MultiSet/MultiMap |
-| [MyOrderedTree](DataStructure/MyOrderedTree/README.md) | 구현·분석성 | Red-Black Tree 기반 Set/Map/MultiSet/MultiMap |
+| [MyOrderedTree](DataStructure/MyOrderedTree/README.md) | 구현·분석 | Red-Black Tree 기반 Set/Map/MultiSet/MultiMap |
 
 ## 프로젝트 구성
 
