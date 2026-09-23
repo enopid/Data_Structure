@@ -1,16 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files"><UniqueIdentifier>{83B078F8-D646-4335-B165-F1D022EA599D}</UniqueIdentifier><Extensions>cpp;c;cc;cxx</Extensions></Filter>
-    <Filter Include="Header Files"><UniqueIdentifier>{5F361178-79E4-4A35-9D39-345532562752}</UniqueIdentifier><Extensions>h;hpp;inl</Extensions></Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{83B078F8-D646-4335-B165-F1D022EA599D}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{5F361178-79E4-4A35-9D39-345532562752}</UniqueIdentifier>
+      <Extensions>h;hpp;inl</Extensions>
+    </Filter>
+    <Filter Include="Header Files\OrederedMap">
+      <UniqueIdentifier>{80545f48-e0fc-4837-a0bb-66b3f60e094f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OrderedSet">
+      <UniqueIdentifier>{dd598572-ae68-4b07-a667-b5160331fb29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\RedBlackTree">
+      <UniqueIdentifier>{1084b378-9a56-4ace-b8b7-be1ea912841d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
-  <ItemGroup><ClCompile Include="..\Private\Main.cpp"><Filter>Source Files</Filter></ClCompile></ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Public\MyOrderedSet.h"><Filter>Header Files</Filter></ClInclude>
-    <ClInclude Include="..\Public\MyOrderedMap.h"><Filter>Header Files</Filter></ClInclude>
+    <ClCompile Include="..\Private\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Public\MyOrderedSet.inl"><Filter>Header Files</Filter></None>
-    <None Include="..\Public\MyOrderedMap.inl"><Filter>Header Files</Filter></None>
+    <ClInclude Include="..\Public\MyOrderedMap.h">
+      <Filter>Header Files\OrederedMap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\MyOrderedMultiMap.h">
+      <Filter>Header Files\OrederedMap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\MyOrderedMultiSet.h">
+      <Filter>Header Files\OrderedSet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\MyOrderedSet.h">
+      <Filter>Header Files\OrderedSet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\MyRedBlackTree.h">
+      <Filter>Header Files\RedBlackTree</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Public\MyOrderedMap.inl">
+      <Filter>Header Files\OrederedMap</Filter>
+    </None>
+    <None Include="..\Public\MyOrderedMultiMap.inl">
+      <Filter>Header Files\OrederedMap</Filter>
+    </None>
+    <None Include="..\Public\MyOrderedMultiSet.inl">
+      <Filter>Header Files\OrderedSet</Filter>
+    </None>
+    <None Include="..\Public\MyOrderedSet.inl">
+      <Filter>Header Files\OrderedSet</Filter>
+    </None>
+    <None Include="..\Public\MyRedBlackTree.inl">
+      <Filter>Header Files\RedBlackTree</Filter>
+    </None>
   </ItemGroup>
 </Project>

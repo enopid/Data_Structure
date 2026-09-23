@@ -48,10 +48,16 @@
   <ItemGroup>
     <ClInclude Include="..\Public\MyOrderedSet.h" />
     <ClInclude Include="..\Public\MyOrderedMap.h" />
+    <ClInclude Include="..\Public\MyOrderedMultiSet.h" />
+    <ClInclude Include="..\Public\MyOrderedMultiMap.h" />
+    <ClInclude Include="..\Public\MyRedBlackTree.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Public\MyOrderedSet.inl" />
     <None Include="..\Public\MyOrderedMap.inl" />
+    <None Include="..\Public\MyOrderedMultiSet.inl" />
+    <None Include="..\Public\MyOrderedMultiMap.inl" />
+    <None Include="..\Public\MyRedBlackTree.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

@@ -1,3 +1,16 @@
 #pragma once
 
-// Red-black tree based ordered map: template definitions to be implemented.
+template<typename K, typename V, typename Compare>
+inline MyOrderedMap<K, V, Compare>::MyOrderedMap() : _Tree() {}
+
+template<typename K, typename V, typename Compare>
+inline K MyOrderedMap<K, V, Compare>::_KeyExtractor(const _Key_Value_Type& _keyvalue) const {
+    return _keyvalue.first;
+}
+
+template<typename K, typename V, typename Compare>
+inline V MyOrderedMap<K, V, Compare>::_ValueExtractor(const _Key_Value_Type& _keyvalue) const {
+    return _keyvalue.second;
+}
+
+// at and operator[] require the tree's search/insert interface.

@@ -26,11 +26,11 @@ public:
 		iterator();
 		iterator(Node* ptr);
 		iterator&	operator=(const iterator& other);
+		bool		operator!=(const iterator& other) const;
 		iterator&	operator++();
 		iterator	operator++(int);
 		iterator&	operator--();
 		iterator	operator--(int);
-		bool		operator!=(const iterator& other) const;
 		reference	operator*() const;
 		pointer		operator->() const;
 		template<typename> friend class MyLinkedList;

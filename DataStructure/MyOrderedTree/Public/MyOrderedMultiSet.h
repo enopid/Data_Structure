@@ -3,13 +3,13 @@
 #include "MyRedBlackTree.h"
 
 template<typename _Key_Type, typename Compare = std::less<_Key_Type>>
-class MyOrderedSet : public MyRedBlackTree<_Key_Type, _Key_Type, _Key_Type, Compare, false> {
+class MyOrderedMultiSet : public MyRedBlackTree<_Key_Type, _Key_Type, _Key_Type, Compare, true> {
     using _Key_Value_Type = _Key_Type;
-    using _Tree = MyRedBlackTree<_Key_Type, _Key_Type, _Key_Value_Type, Compare, false>;
+    using _Tree = MyRedBlackTree<_Key_Type, _Key_Type, _Key_Value_Type, Compare, true>;
 public:
-    MyOrderedSet();
+    MyOrderedMultiSet();
     _Key_Type _KeyExtractor(const _Key_Value_Type& _keyvalue) const;
     _Key_Type _ValueExtractor(const _Key_Value_Type& _keyvalue) const;
 };
 
-#include "MyOrderedSet.inl"
+#include "MyOrderedMultiSet.inl"

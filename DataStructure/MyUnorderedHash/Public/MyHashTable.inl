@@ -118,7 +118,7 @@ inline MyHashTable<K, V, KV, M>::~MyHashTable() {
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline typename MyHashTable<K, V, KV, M>::HashNode*
+typename MyHashTable<K, V, KV, M>::HashNode*
 MyHashTable<K, V, KV, M>::Find(K key) {
     int hash = _hasher(key) % _bucketSize;
     HashNode* curHashNode = _buckets[hash];
