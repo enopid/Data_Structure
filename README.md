@@ -17,24 +17,24 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 
 | 자료구조 | 상태 | 설명 |
 | --- | --- | --- |
-| [MyVector](DataStructure/MyVector/README.md) | 구현·분석 | 연속 메모리 기반 동적 배열 |
-| [MyList](DataStructure/MyList/README.md) | 구현·분석 | 양방향 연결 리스트 |
-| [MyPriorityQueue](DataStructure/MyPriorityQueue/README.md) | 구현·분석 | Binary Heap과 Handle 기반 Decrease-Key |
-| [MyDeque](DataStructure/MyDeque/README.md) | 구현·분석 | Chunked Ring Buffer Deque |
-| [MyUnorderedHash](DataStructure/MyUnorderedHash/README.md) | 구현·분석 | Hash Table 기반 Set/Map/MultiSet/MultiMap |
-| [MyOrderedTree](DataStructure/MyOrderedTree/README.md) | 구현·분석 | Red-Black Tree 기반 Set/Map/MultiSet/MultiMap |
+| [MyVector](DataStructure/01_MyVector/README.md) | 구현·분석 | 연속 메모리 기반 동적 배열 |
+| [MyList](DataStructure/02_MyList/README.md) | 구현·분석 | 양방향 연결 리스트 |
+| [MyDeque](DataStructure/03_MyDeque/README.md) | 구현·분석 | Chunked Ring Buffer Deque |
+| [MyPriorityQueue](DataStructure/04_MyPriorityQueue/README.md) | 구현·분석 | Binary Heap과 Handle 기반 Decrease-Key |
+| [MyUnorderedHash](DataStructure/05_MyUnorderedHash/README.md) | 구현·분석 | Hash Table 기반 Set/Map/MultiSet/MultiMap |
+| [MyOrderedTree](DataStructure/06_MyOrderedTree/README.md) | 구현·분석 | Red-Black Tree 기반 Set/Map/MultiSet/MultiMap |
 
 ## 프로젝트 구성
 
 ```text
 DataStructure/
 ├─ Common/             # 공통 인터페이스와 테스트 유틸리티
-├─ MyVector/
-├─ MyList/
-├─ MyPriorityQueue/
-├─ MyDeque/
-├─ MyUnorderedHash/
-└─ MyOrderedTree/      # 구현 전 프로젝트 뼈대
+├─ 01_MyVector/
+├─ 02_MyList/
+├─ 03_MyDeque/
+├─ 04_MyPriorityQueue/
+├─ 05_MyUnorderedHash/
+└─ 06_MyOrderedTree/
 
 각 프로젝트/
 ├─ Public/             # 자료구조 헤더와 템플릿 정의

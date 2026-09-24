@@ -9,17 +9,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{C8D527
 		Common\TestUtils.h = Common\TestUtils.h
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyVector", "MyVector\Default\MyVector.vcxproj", "{624C8D50-CF3A-4231-841B-5F20EE13D3A6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyVector", "01_MyVector\Default\MyVector.vcxproj", "{624C8D50-CF3A-4231-841B-5F20EE13D3A6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyList", "MyList\Default\MyList.vcxproj", "{497D0250-E0A1-4248-A57A-8A90673B5403}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyList", "02_MyList\Default\MyList.vcxproj", "{497D0250-E0A1-4248-A57A-8A90673B5403}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyPriorityQueue", "MyPriorityQueue\Default\MyPriorityQueue.vcxproj", "{8E8B8A1C-771A-4D92-A531-91B4726C76A4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyDeque", "03_MyDeque\Default\MyDeque.vcxproj", "{B207966D-0EC0-4FC8-A67A-AED19083EA9B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyDeque", "MyDeque\Default\MyDeque.vcxproj", "{B207966D-0EC0-4FC8-A67A-AED19083EA9B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyPriorityQueue", "04_MyPriorityQueue\Default\MyPriorityQueue.vcxproj", "{8E8B8A1C-771A-4D92-A531-91B4726C76A4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyUnorderedHash", "MyUnorderedHash\Default\MyUnorderedHash.vcxproj", "{7CA3060E-F742-4C5F-A178-4F6AF47AA952}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyUnorderedHash", "05_MyUnorderedHash\Default\MyUnorderedHash.vcxproj", "{7CA3060E-F742-4C5F-A178-4F6AF47AA952}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyOrderedTree", "MyOrderedTree\Default\MyOrderedTree.vcxproj", "{11943AC7-2A4A-4654-A479-80262F67BB47}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyOrderedTree", "06_MyOrderedTree\Default\MyOrderedTree.vcxproj", "{11943AC7-2A4A-4654-A479-80262F67BB47}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -31,8 +31,6 @@ STL의 정렬 연관 컨테이너를 참고해 레드블랙 트리 기반의 `Se
 | 고유 키 | `MyOrderedSet`, `MyOrderedMap` |
 | 중복 키 | `MyOrderedMultiSet`, `MyOrderedMultiMap` |
 
-참고 문헌: [cppreference - std::set](https://en.cppreference.com/w/cpp/container/set), [cppreference - std::map](https://en.cppreference.com/w/cpp/container/map)
-
 ## 분석
 
 ### 유효성 테스트
@@ -205,7 +203,17 @@ require(values.Size() == 1 && *values.begin() == 3, "tree cannot be reused after
 
 </details>
 
-### 부하 테스트 및 성능 벤치마크
+### 부하 테스트
+
+#### 실행 방법
+
+```powershell
+# 유효성 테스트
+.\DataStructure\06_MyOrderedTree\Bin\Release\MyOrderedTree.exe
+
+# 벤치마크: benchmark [원소 수] [반복 횟수]
+.\DataStructure\06_MyOrderedTree\Bin\Release\MyOrderedTree.exe benchmark 10000 15
+```
 
 #### 측정 조건
 
@@ -227,14 +235,16 @@ require(values.Size() == 1 && *values.begin() == 3, "tree cannot be reused after
 | std::set | 평균 | 1,281 | 792 | 912 | 618 | 96 | 3,699 |
 | std::set | 중앙값 | 1,281 | 774 | 886 | 617 | 97 | 3,655 |
 
+#### Release 측정 결과 분석
+
+<details>
+<summary><strong>0. STL과의 벤치마크 결과</strong></summary>
+
 이번 실행에서는 `std::set`이 최초 삽입과 재삽입에서 빨랐고, `MyOrderedSet`은 삭제가 빠르게 측정됐습니다. 검색과 순회는 유사했으며, 전체 중앙값은 `MyOrderedSet`이 약 3.6% 낮았습니다. 결과는 단일 실행 환경의 측정치이므로 절대적인 우열보다 구현별 연산 특성을 비교하는 자료로 사용합니다.
 
-#### 실행 방법
+</details>
 
-```powershell
-# 유효성 테스트
-.\DataStructure\MyOrderedTree\Bin\Release\MyOrderedTree.exe
+## 참고 문헌
 
-# 벤치마크: benchmark [원소 수] [반복 횟수]
-.\DataStructure\MyOrderedTree\Bin\Release\MyOrderedTree.exe benchmark 10000 15
-```
+- [std::set - cppreference](https://en.cppreference.com/w/cpp/container/set)
+- [std::map - cppreference](https://en.cppreference.com/w/cpp/container/map)

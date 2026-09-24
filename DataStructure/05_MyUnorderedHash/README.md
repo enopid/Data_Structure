@@ -239,6 +239,14 @@ void test_empty_move() {
 
 ### 부하 테스트
 
+#### 실행 방법
+
+```powershell
+& '.\DataStructure\05_MyUnorderedHash\Bin\Release\MyUnorderedHash.exe' benchmark 8192 15
+```
+
+저장소 루트에서 실행하는 명령입니다. 인자는 순서대로 `benchmark [원소 수] [조건별 반복 횟수]`입니다. 인자를 생략하면 8,192개와 15회를 사용합니다. `benchmark` 없이 실행하면 위의 유효성 테스트 9개가 실행됩니다.
+
 #### 측정 조건
 
 로드 팩터별 **조회 성능**을 `MyUnorderedSet<int>`와 MSVC STL의 `std::unordered_set<int>`로 비교했습니다. 원소 8,192개를 미리 삽입하고, 각 측정에서 존재하는 키 8,192개와 없는 키 8,192개를 조회합니다. 삽입·테이블 생성·버킷 준비 시간은 측정에 포함하지 않습니다.
@@ -263,14 +271,11 @@ void test_empty_move() {
 | 1.0 | 8,192 | 31 / 31 μs | 46 / 46 μs |
 | 2.0 | 4,096 | 42 / 42 μs | 75 / 51 μs |
 
-#### 해석
+#### Release 측정 결과 분석
+
+<details>
+<summary><strong>0. STL과의 벤치마크 결과</strong></summary>
 
 이번 실행에서는 두 구현 모두 로드 팩터 2.0에서 조회 시간이 늘었습니다. `MyUnorderedSet`이 모든 조건에서 더 짧게 측정됐지만, 이 결과는 **정수 키의 조회 연산만** 비교한 것으로 삽입·삭제나 전체 컨테이너 성능의 우위를 뜻하지 않습니다. 측정값은 실행 환경에 따라 달라질 수 있습니다.
 
-#### 실행 방법
-
-```powershell
-& '.\DataStructure\MyUnorderedHash\Bin\Release\MyUnorderedHash.exe' benchmark 8192 15
-```
-
-저장소 루트에서 실행하는 명령입니다. 인자는 순서대로 `benchmark [원소 수] [조건별 반복 횟수]`입니다. 인자를 생략하면 8,192개와 15회를 사용합니다. `benchmark` 없이 실행하면 위의 유효성 테스트 9개가 실행됩니다.
+</details>
