@@ -13,12 +13,38 @@
 `MyVector<T>`는 STL의 `std::vector`를 따라 구현한 동적 배열입니다.<br>
 원소를 연속된 메모리 공간에 저장하고, 공간이 부족하면 기존 용량에 일정 비율을 곱하는 Geometric Growth 방식으로 더 큰 공간을 할당합니다.
 
+
+<details>
+<summary>(Geometric Growth라는 용어는 stl에서 사용하는 용어를 그대로 가져왔습니다)</summary>
+  
+```cpp
+    //stl vector 일부 캡쳐
+    _CONSTEXPR20 size_type _Calculate_growth(const size_type _Newsize) const {
+        // given _Oldcapacity and _Newsize, calculate geometric growth
+        const size_type _Oldcapacity = capacity();
+        const auto _Max              = max_size();
+
+        if (_Oldcapacity > _Max - _Oldcapacity / 2) {
+            return _Max; // geometric growth would overflow
+        }
+
+        const size_type _Geometric = _Oldcapacity + _Oldcapacity / 2;
+
+        if (_Geometric < _Newsize) {
+            return _Newsize; // geometric growth would be insufficient
+        }
+
+        return _Geometric; // geometric growth is sufficient
+    }
+```
+</details>
+
 ### 구현 중심점
-- Geometric Growth 방식의 메모리 할당
-- 원소 타입의 이동과 복사를 고려한 재할당
-- 불필요한 원소 생성을 피하기 위해 `malloc`으로 원시 메모리 공간 확보
-- Placement New를 사용해 필요한 위치에서만 원소 생성
-- 복사·이동 생성자와 복사·이동 대입 연산자 구현
+- **Geometric Growth 방식의 메모리 할당**<br>(기본적인 벡터 구조의 메모리 관리 방식 적용)
+- **원소 타입의 이동과 복사를 고려한 재할당**<br>(복사시는 trivially_copyable 가능시 memcpy 사용 / 이동시는 move_if_noexcept 사용을 통한 강한 예외 보장)
+- **불필요한 원소 생성을 피하기 위해 `malloc`으로 원시 메모리 공간 확보**<br>(기본 생성자 없는 타입도 호환 + 최초 메모리 할당시 기본 생성자 호출로 인한 오버헤드 방지)
+- **Placement New를 사용해 필요한 위치에서만 원소 생성**<br>(malloc을 통한 커스텀 메모리관리 방식에 따른 할당 방식 사용)
+- **복사·이동 생성자와 복사·이동 대입 연산자 구현**<br>(rule of five 적용)
 
 ## 포함 기능
 
@@ -298,13 +324,100 @@ MyVector.exe --benchmark 10000 5 string
 | MyVector Linear Growth | 40,395μs | 41,581μs | 27,757μs | 54,571μs | 1,000회 | 10,001 |
 | `std::vector` | 645μs | 607μs | 596μs | 727μs | 24회 | 12,138 |
 
-기본 증가 계수 1.5에서 MyVector와 `std::vector`의 최종 용량은 12,138로 동일했습니다. 표시된 재할당 횟수가 23회와 24회로 다른 이유는 MyVector가 생성 시 확보하는 최초 capacity 1을 현재 측정 코드에서 재할당으로 집계하지 않는 반면, `std::vector`는 capacity 0에서 시작하여 최초 할당도 집계되기 때문입니다.
+#### 측정 결과 분석
+##### 0. Geometric Factor에 따른 차이
+Growth Factor가 클수록 한 번에 확보하는 메모리는 증가하지만, 전체 **재할당 횟수**와 기존 원소를 **이동하는 누적 비용**은 감소한다.
 
-증가 계수를 2.0으로 변경하면 최종 여유 공간은 늘어나지만 재할당 횟수는 14회로 감소하여 MyVector 1.5보다 중앙값이 줄었습니다. 그러나 `int` 30회 반복 결과에서는 두 MyVector 설정 모두 `std::vector`보다 느렸습니다. Linear Growth 방식은 재할당이 1,000회 발생했고 최댓값도 크게 흔들렸습니다.
+- $N$: 최종 원소 개수
+- $a$: Geometric Growth Factor
+- $k$: 재할당 횟수
 
-`std::string` 측정에서는 MyVector 기본값의 평균 시간이 `std::vector`보다 느렸고, 중앙값은 Growth Factor 2.0과 `std::vector`가 동일하게 측정됐습니다. 비단순 타입에서는 원소의 이동·복사와 메모리 할당 비용이 함께 반영되므로 `int` 결과와 양상이 달라질 수 있습니다.
+비어있는 상태에서 N개의 원소 순차적으로 추가시 재할당 횟수 계산
 
-`int`는 각 방식당 30회, `std::string`은 각 방식당 5회 측정했습니다. 실행 시간이 짧아 캐시, 실행 순서와 시스템 상태의 영향을 받을 수 있으므로 해당 수치는 현재 환경과 입력 조건에서 얻은 결과로 한정합니다.
+$$
+a^k \ge N
+$$
+$$
+k = \lceil \log_a N \rceil
+$$
+
+비어있는 상태에서 N개의 원소 순차적으로 추가시 누적 메모리 할당 크기 계산
+
+$$
+1 + a + a^2 + \cdots + a^k
+= \frac{a^{k+1}-1}{a-1}
+$$
+$$
+\frac{aN-1}{a-1}
+\approx \frac{a}{a-1}N
+$$
+
+따라서 Growth Factor에 따른 누적 이동량(할당량)은 다음과 같이 근사할 수 있다.
+- Factor 1.5: 약 $3N$
+- Factor 2.0: 약 $2N$
+
+이론적으로 Factor 1.5는 Factor 2.0보다 약 **1.5배** 많은 원소를 누적해서 이동(할당)한다. 실제 측정에서도 Factor 1.5는 23회, Factor 2.0은 14회의 재할당이 발생하여 Factor 2.0이 더 적은 재할당 횟수를 보였다.
+다만 실행 시간이 반드시 누적 이동량과 같은 비율로 증가하지는 않는다. 이번 측정에서 최종 Capacity는 각각 다음과 같았다.
+- Factor 1.5: `12,138`
+- Factor 2.0: `16,384`
+
+Factor 1.5의 최종 할당 크기는 Factor 2.0의 약 $3/4$ 수준이다. 재할당 작업량 차이를 단순하게 보정하면 다음과 같다.
+
+$$
+1.5 \times \frac{3}{4} = 1.125
+$$
+
+`int` 측정 중앙값인 `43us`와 `38us`의 비율도 대략 1.13배였다. (string역시 마찬가지이다)
+이는 Factor의 값을 늘린다고 해도 그만큼 시간적인 차이가 크지 않고 메모리만 크게 점유를 할수있음을 보여준다. 
+
+##### 1. Capacity 확장 방식에 따른 차이
+Linear Grow 방식은 재할당 횟수는 $O(N)$이고, 누적 원소 이동량은 $O(N^2)$이다.
+반면 Geometric Growth 방식은 앞서 구했듯이 재할당 횟수는 $O(\log N)$이고, 누적 원소 이동량은 $O(N)$이다. 
+
+실제 중앙값을 비교하면 다음과 같다.
+| 자료형 | Linear | Factor 1.5 | Factor 2.0 |
+| --- | ---: | ---: | ---: |
+| `int` | 546us | 43us | 38us |
+| `string` | 41,581us | 688us | 607us |
+
+기본적으로 원소 수가 증가할수록 두 확장 방식의 성능 차이는 더욱 커질 것으로 예상된다.
+
+##### 2. 자료형에 따른 move 효용성 분석
+`string` 테스트는 재할당 과정에서 복사 대신 Move 연산을 적용했을 때의 동작과 성능을 확인하기 위해 추가하였다.
+`string`을 복사하면 문자열 내용까지 새로운 메모리에 복제해야 하지만, Move 연산은 일반적으로 기존 문자열 버퍼의 소유권을 새로운 객체로 이전할 수 있다.
+
+현재 `MyVector`는 재할당 시 `std::move_if_noexcept`를 이용한다. 안전한 이동 생성이 가능한 자료형에는 Move를 적용하고, 이동 과정에서 예외가 발생할 가능성이 있는 자료형에는 복사를 선택하여 기존 데이터의 안정성을 유지한다.  따라서 move 시멘틱이 존재하는 string은  재할당에 있어서 move를 우선적으로 사용하게 된다.
+
+`string` 측정 중앙값은 다음과 같다.
+- MyVector Factor 1.5: `688us`
+- MyVector Factor 2.0: `607us`
+- `std::vector`: `607us`
+- MyVector Linear Growth: `41,581us`
+
+`MyVector`가 `std::vector`와 유사한 중앙값을 기록했다. 이는 비단순 자료형의 재할당 과정에서 Move를 적용한 현재 구현이 충분히 유효하게 동작하고 있음을 보여준다.
+
+다만 현재 테스트는 Move 버전과 강제 복사 버전을 직접 비교한 것이 아니므로 Move 자체의 개선 비율을 독립적으로 측정한 결과는 아니다. 이 분석에서는 `string` 벤치마크 결과를 통해 Move를 적용한 구현의 실질적인 성능을 확인하는 수준으로 해석한다.
+
+##### 3. stl과의 벤치 마킹 결과
+`int` 테스트에서는 `std::vector`가 `MyVector`보다 빠른 결과(3배)를 보였고 'string'의 경우는 비슷한 결과를 보여준다. 
+
+| 구현 | 중앙값 |
+| --- | ---: |
+| MyVector Factor 1.5 | 43us |
+| MyVector Factor 2.0 | 38us |
+| `std::vector` | 14us |
+
+Factor 1.5의 경우 `MyVector`와 `std::vector`의 최종 Capacity가 모두 `12,138`로 같고 재할당 횟수도 실질적으로 동일하다. 따라서 약 3배의 시간 차이는 Growth 정책보다는 구현 세부사항과 측정 단위의 영향을 받은 것으로 판단된다.
+또한, 현재 `MyVector` 역시 `int` 재할당에 `memcpy`를 사용하므로 단순히 STL만 일괄 메모리 복사를 사용하기 때문에 발생한 차이는 아니다.
+
+가능한 원인은 다음과 같다.
+
+- 표준 라이브러리의 메모리 할당 및 재배치 경로 최적화
+- 컴파일러가 STL 내부 코드를 인라인화하고 최적화하는 정도의 차이
+- Capacity 확인 및 측정용 분기에서 발생하는 고정 오버헤드
+
+반면 `string`에서는 MyVector Factor 2.0과 `std::vector`의 중앙값이 모두 `607us`였으며, Factor 1.5도 약 13% 느린 수준이었다.
+`string`은 각 원소의 이동 생성과 소멸 비용이 전체 실행 시간에서 큰 비중을 차지하므로 컨테이너 자체의 작은 고정 오버헤드가 상대적으로 덜 부각된 것으로 볼 수 있다.
 
 ## 참고 문헌
 
