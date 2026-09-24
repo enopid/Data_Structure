@@ -325,32 +325,41 @@ MyVector.exe --benchmark 10000 5 string
 | `std::vector` | 645μs | 607μs | 596μs | 727μs | 24회 | 12,138 |
 
 #### 측정 결과 분석
-##### 0. Geometric Factor에 따른 차이
+
+<details>
+<summary><strong>0. Geometric Factor에 따른 차이</strong></summary>
+
 Growth Factor가 클수록 한 번에 확보하는 메모리는 증가하지만, 전체 **재할당 횟수**와 기존 원소를 **이동하는 누적 비용**은 감소한다.
 
-- $N$: 최종 원소 개수
-- $a$: Geometric Growth Factor
-- $k$: 재할당 횟수
+> **변수 정의 및 재할당 횟수 계산**
+>
+> - $N$: 최종 원소 개수
+> - $a$: Geometric Growth Factor
+> - $k$: 재할당 횟수
+>
+> 비어 있는 상태에서 $N$개의 원소를 순차적으로 추가할 때의 재할당 횟수는 다음과 같다.
+>
+> $$
+> a^k \ge N
+> $$
+>
+> $$
+> k = \lceil \log_a N \rceil
+> $$
 
-비어있는 상태에서 N개의 원소 순차적으로 추가시 재할당 횟수 계산
-
-$$
-a^k \ge N
-$$
-$$
-k = \lceil \log_a N \rceil
-$$
-
-비어있는 상태에서 N개의 원소 순차적으로 추가시 누적 메모리 할당 크기 계산
-
-$$
-1 + a + a^2 + \cdots + a^k
-= \frac{a^{k+1}-1}{a-1}
-$$
-$$
-\frac{aN-1}{a-1}
-\approx \frac{a}{a-1}N
-$$
+> **누적 메모리 할당 크기 계산**
+>
+> 비어 있는 상태에서 $N$개의 원소를 순차적으로 추가할 때의 누적 메모리 할당 크기는 다음과 같다.
+>
+> $$
+> 1 + a + a^2 + \cdots + a^k
+> = \frac{a^{k+1}-1}{a-1}
+> $$
+>
+> $$
+> \frac{aN-1}{a-1}
+> \approx \frac{a}{a-1}N
+> $$
 
 따라서 Growth Factor에 따른 누적 이동량(할당량)은 다음과 같이 근사할 수 있다.
 - Factor 1.5: 약 $3N$
@@ -370,7 +379,11 @@ $$
 `int` 측정 중앙값인 `43us`와 `38us`의 비율도 대략 1.13배였다. (string역시 마찬가지이다)
 이는 Factor의 값을 늘린다고 해도 그만큼 시간적인 차이가 크지 않고 메모리만 크게 점유를 할수있음을 보여준다. 
 
-##### 1. Capacity 확장 방식에 따른 차이
+</details>
+
+<details>
+<summary><strong>1. Capacity 확장 방식에 따른 차이</strong></summary>
+
 Linear Grow 방식은 재할당 횟수는 $O(N)$이고, 누적 원소 이동량은 $O(N^2)$이다.
 반면 Geometric Growth 방식은 앞서 구했듯이 재할당 횟수는 $O(\log N)$이고, 누적 원소 이동량은 $O(N)$이다. 
 
@@ -382,23 +395,34 @@ Linear Grow 방식은 재할당 횟수는 $O(N)$이고, 누적 원소 이동량�
 
 기본적으로 원소 수가 증가할수록 두 확장 방식의 성능 차이는 더욱 커질 것으로 예상된다.
 
-##### 2. 자료형에 따른 move 효용성 분석
+</details>
+
+<details>
+<summary><strong>2. 자료형에 따른 move 효용성 분석</strong></summary>
+
 `string` 테스트는 재할당 과정에서 복사 대신 Move 연산을 적용했을 때의 동작과 성능을 확인하기 위해 추가하였다.
 `string`을 복사하면 문자열 내용까지 새로운 메모리에 복제해야 하지만, Move 연산은 일반적으로 기존 문자열 버퍼의 소유권을 새로운 객체로 이전할 수 있다.
 
 현재 `MyVector`는 재할당 시 `std::move_if_noexcept`를 이용한다. 안전한 이동 생성이 가능한 자료형에는 Move를 적용하고, 이동 과정에서 예외가 발생할 가능성이 있는 자료형에는 복사를 선택하여 기존 데이터의 안정성을 유지한다.  따라서 move 시멘틱이 존재하는 string은  재할당에 있어서 move를 우선적으로 사용하게 된다.
 
 `string` 측정 중앙값은 다음과 같다.
-- MyVector Factor 1.5: `688us`
-- MyVector Factor 2.0: `607us`
-- `std::vector`: `607us`
-- MyVector Linear Growth: `41,581us`
+
+| 구현 | 중앙값 |
+| --- | ---: |
+| MyVector Factor 1.5 | 688us |
+| MyVector Factor 2.0 | 607us |
+| `std::vector` | 607us |
+| MyVector Linear Growth | 41,581us |
 
 `MyVector`가 `std::vector`와 유사한 중앙값을 기록했다. 이는 비단순 자료형의 재할당 과정에서 Move를 적용한 현재 구현이 충분히 유효하게 동작하고 있음을 보여준다.
 
 다만 현재 테스트는 Move 버전과 강제 복사 버전을 직접 비교한 것이 아니므로 Move 자체의 개선 비율을 독립적으로 측정한 결과는 아니다. 이 분석에서는 `string` 벤치마크 결과를 통해 Move를 적용한 구현의 실질적인 성능을 확인하는 수준으로 해석한다.
 
-##### 3. stl과의 벤치 마킹 결과
+</details>
+
+<details>
+<summary><strong>3. stl과의 벤치 마킹 결과</strong></summary>
+
 `int` 테스트에서는 `std::vector`가 `MyVector`보다 빠른 결과(3배)를 보였고 'string'의 경우는 비슷한 결과를 보여준다. 
 
 | 구현 | 중앙값 |
@@ -418,6 +442,8 @@ Factor 1.5의 경우 `MyVector`와 `std::vector`의 최종 Capacity가 모두 `1
 
 반면 `string`에서는 MyVector Factor 2.0과 `std::vector`의 중앙값이 모두 `607us`였으며, Factor 1.5도 약 13% 느린 수준이었다.
 `string`은 각 원소의 이동 생성과 소멸 비용이 전체 실행 시간에서 큰 비중을 차지하므로 컨테이너 자체의 작은 고정 오버헤드가 상대적으로 덜 부각된 것으로 볼 수 있다.
+
+</details>
 
 ## 참고 문헌
 

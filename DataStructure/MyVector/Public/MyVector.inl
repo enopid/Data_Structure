@@ -153,7 +153,7 @@ void MyVector<T>::shrink_to_fit() {
 template<typename T>
 void MyVector<T>::insert(int pos, const T& val) {
     if (pos >= _size) return;
-    if (_size >= _capacity) { reserve(_capacity * 2); }
+    if (_size >= _capacity) { reserve(std::max(int(_capacity * _growthFactor), 2)); }
 
     if constexpr (std::is_trivially_copyable_v<T>) {
         memmove(_data + pos + 1, _data + pos, sizeof(T) * (_size - pos));
