@@ -10,7 +10,8 @@
 
 ## 개요
 
-`MyHashTable`은 STL의 unordered 컨테이너를 참고해 구현한 해시 테이블입니다. 공통 테이블 위에 `Set`, `Map`, `MultiSet`, `MultiMap`을 구성했습니다.
+`MyHashTable`은 STL의 unordered 컨테이너를 참고해 구현한 해시 테이블입니다. <br>
+공통 테이블을 상속받아 `Set`, `Map`, `MultiSet`, `MultiMap`을 구성했습니다.
 
 ### 구현 중심점
 
