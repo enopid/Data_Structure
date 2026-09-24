@@ -33,8 +33,6 @@ MyDeque<int, 4096> largeDeque;   // 4096Byte
 - 객체 관리: 복사 생성, 복사 대입, 이동 생성, 이동 대입
 - 분석 보조: `print_info`, `print_elements`
 
-참고 문헌: [cppreference - std::deque](https://en.cppreference.com/w/cpp/container/deque.html)
-
 ## 분석
 
 ### 유효성 테스트
@@ -313,3 +311,7 @@ MSVC STL의 16B 블록 정책은 적은 원소를 저장할 때 메모리 낭비
 <br> 청크의 크기가 4096B일때는 성능 차이가 8배 가량 발생하며 stl deque의 작은 블록 정책이 가지는 치명적인 단점을 확인할 수 있습니다.
 
 </details>
+
+## 참고 문헌
+
+- [std::deque - cppreference](https://en.cppreference.com/w/cpp/container/deque.html)

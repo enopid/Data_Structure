@@ -203,7 +203,7 @@ void test_clear_copy_and_move() {
 
 </details>
 
-### 부하 테스트 1: STL Priority Queue 비교
+### 부하 테스트
 
 동일한 입력에 대해 `MyPriorityQueue`와 `std::priority_queue`의 삽입 및 제거 성능을 비교합니다.
 
@@ -232,65 +232,18 @@ MyPriorityQueue.exe --benchmark 100000 30
 | MyPriorityQueue | 12,237μs | 12,238μs | 11,170μs | 13,894μs |
 | `std::priority_queue` | 4,887μs | 4,880μs | 4,766μs | 5,038μs |
 
-두 구현의 checksum은 `49,787,350,884`로 동일했습니다. 이번 조건에서 `std::priority_queue`의 중앙값은 MyPriorityQueue보다 약 2.51배 빨랐습니다.
+두 구현의 checksum은 `49,787,350,884`로 동일했습니다.
 
-MyPriorityQueue는 일반적인 힙 연산 외에도 각 원소의 핸들 슬롯을 생성하고, 노드를 교환할 때마다 슬롯의 힙 인덱스를 갱신합니다. 이 부하 테스트에서는 `update`나 `erase`를 사용하지 않으므로 해당 관리 비용만 추가되고 핸들의 이점은 활용되지 않습니다. 따라서 이 결과는 일반적인 `push`·`pop` 부하를 비교하는 기준이며, decrease-key를 사용하는 Dijkstra 비교는 별도로 측정합니다.
+#### Release 측정 결과 분석
 
-실행 시간은 시스템 상태, 캐시 및 메모리 할당자의 영향을 받으므로 수치는 현재 환경과 입력 조건에 한정합니다.
+<details>
+<summary><strong>0. STL과의 벤치마크 결과</strong></summary>
 
-### 부하 테스트 2: Decrease-Key 기반 Dijkstra
+이번 조건에서 `std::priority_queue`의 중앙값은 MyPriorityQueue보다 약 2.51배 빨랐습니다.
 
-`MyPriorityQueue`의 핸들과 `update`를 이용한 decrease-key 방식이 일반적인 `std::priority_queue` 기반 Dijkstra에 미치는 영향을 비교합니다.
+MyPriorityQueue는 `std::priority_queue`보다 성능이 낮지만, 이는 각 원소의 핸들을 관리하고 노드 교환 시 힙 인덱스를 함께 갱신하는 비용 때문입니다. 대신 `std::priority_queue`가 지원하지 않는 decrease-key와 임의 원소 갱신·삭제를 핸들을 통해 지원합니다.
 
-- 문제: [프로그래머스 118669 - 등산코스 정하기](https://school.programmers.co.kr/learn/courses/30/lessons/118669)
-- [STL/Decrease-Key 통합 제출 코드](Analysis/Programmers118669.cpp)
-
-하나의 파일에 두 방식을 함께 구성했습니다. 파일 상단의 `USE_DECREASE_KEY`를 `0`으로 설정하면 `std::priority_queue` 중복 삽입 방식을, `1`로 설정하면 커스텀 PriorityQueue의 decrease-key 방식을 사용합니다. 커스텀 PriorityQueue 구현도 파일에 포함되어 있어 그대로 프로그래머스에 제출할 수 있습니다.
-
-#### 비교 기준
-
-- `MyPriorityQueue`: 정점별 핸들을 유지하고 거리 감소 시 기존 원소의 우선순위를 갱신
-- `std::priority_queue`: 거리 감소 시 새 항목을 삽입하고, 이후 꺼낸 오래된 항목을 건너뛰는 방식
-- 두 구현에 동일한 그래프와 출입구 사용
-- 여러 출입구를 시작점으로 하는 Multi-Source Dijkstra 적용
-- 경로 비용의 합이 아닌 경로에서 가장 큰 간선 비용인 intensity 갱신
-- 산봉우리에서는 인접 정점으로 탐색을 확장하지 않음
-
-#### 측정 조건
-
-- 측정 환경: 프로그래머스 C++ 채점 서버
-- 대상 문제: 118669 등산코스 정하기
-- 정점 수: 최대 50,000개
-- 간선 수: 최대 200,000개
-- 시간 단위: 밀리초(ms)
-- 메모리 단위: MB
-- 제출 방식: `USE_DECREASE_KEY`만 변경하여 두 방식 별도 제출
-
-#### 채점 서버 측정 결과
-
-| 구현 | 평균 시간 | 중앙값 | 최소 | 최대 | 평균 메모리 | 최대 메모리 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| MyPriorityQueue decrease-key | 5.940ms | 0.440ms | 0.010ms | 37.770ms | 17.602MB | 54.7MB |
-| `std::priority_queue` 중복 삽입 | 5.762ms | 0.500ms | 0.010ms | 36.510ms | 17.527MB | 53.5MB |
-
-실행 시간이 비교적 큰 14~25번 테스트만 분리한 결과는 다음과 같습니다.
-
-| 구현 | 평균 시간 | 중앙값 | 최소 | 최대 | 평균 메모리 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| MyPriorityQueue decrease-key | 12.315ms | 10.520ms | 1.030ms | 37.770ms | 31.518MB |
-| `std::priority_queue` 중복 삽입 | 11.941ms | 10.110ms | 1.080ms | 36.510ms | 31.223MB |
-
-#### 해석
-
-두 방식 모두 25개 테스트를 통과했습니다. Lazy insertion을 적용한 decrease-key 방식의 전체 평균은 5.940ms로, 기존 eager 방식의 6.467ms보다 약 8.1% 개선됐습니다. 중앙값도 0.530ms에서 0.440ms로 감소했습니다.
-
-STL 재측정 결과와 비교하면 decrease-key 방식의 전체 평균은 약 3.1% 높았고, 무거운 14~25번 테스트의 평균도 약 3.1% 높았습니다. 표시된 실행 시간 기준으로 STL 방식이 11개에서 빨랐고 decrease-key 방식이 5개에서 빨랐으며 9개는 같았습니다. 전체 중앙값은 decrease-key 방식이 낮았지만, 무거운 구간의 중앙값은 STL 방식이 낮았습니다.
-
-모든 정점을 미리 삽입하지 않도록 변경하면서 불필요한 힙 노드와 핸들 생성 비용이 줄어 두 구현의 실행 시간이 거의 같은 수준까지 좁혀졌습니다. 다만 decrease-key 방식은 노드 교환 시 핸들 인덱스 갱신과 유효성 검사를 수행하므로 평균에서 STL보다 소폭 느렸습니다.
-
-전체 평균 메모리 차이는 약 0.075MB, 무거운 구간의 평균 차이는 약 0.295MB였습니다. 최대 메모리는 decrease-key 방식 54.7MB, STL 방식 53.5MB로 커스텀 구현이 조금 높았습니다.
-
-프로그래머스 수치는 서로 다른 제출 실행에서 얻은 값이므로 서버 상태와 측정 해상도의 영향을 받을 수 있습니다. 3.1% 정도의 차이만으로 어느 구현이 일반적으로 더 빠르다고 단정하기는 어렵지만, 이번 제출에서는 STL 방식이 소폭 우세했습니다.
+</details>
 
 ## 참고 문헌
 
