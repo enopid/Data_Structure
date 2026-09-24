@@ -242,12 +242,30 @@ void test_empty_move() {
 #### 실행 방법
 
 ```powershell
-& '.\DataStructure\05_MyUnorderedHash\Bin\Release\MyUnorderedHash.exe' benchmark 8192 15
+# 기본 부하 테스트: benchmark [원소 수] [반복 횟수]
+.\DataStructure\05_MyUnorderedHash\Bin\Release\MyUnorderedHash.exe benchmark 100000 15
+
+# Load Factor별 조회 테스트: load-factor [원소 수] [반복 횟수]
+.\DataStructure\05_MyUnorderedHash\Bin\Release\MyUnorderedHash.exe load-factor 8192 15
 ```
 
-저장소 루트에서 실행하는 명령입니다. 인자는 순서대로 `benchmark [원소 수] [조건별 반복 횟수]`입니다. 인자를 생략하면 8,192개와 15회를 사용합니다. `benchmark` 없이 실행하면 위의 유효성 테스트 9개가 실행됩니다.
+저장소 루트에서 실행하는 명령입니다. `benchmark`의 기본값은 100,000개와 15회이며, `load-factor`의 기본값은 8,192개와 15회입니다. 실행 모드를 생략하면 위의 유효성 테스트 9개가 실행됩니다.
 
 #### 측정 조건
+
+##### 1. 기본 부하 테스트
+
+고정 시드로 셔플한 동일한 고유 정수 키를 `MyUnorderedSet<int>`와 MSVC STL의 `std::unordered_set<int>`에 삽입하고, 전체 키를 탐색한 뒤 같은 순서로 모두 삭제합니다. RBT 프로젝트의 기본 부하 테스트와 입력·원소 수·반복 횟수·측정 연산을 동일하게 구성했습니다.
+
+- 빌드 구성: `Release x64`
+- 원소 수: 100,000개
+- 반복 횟수: 컨테이너별 15회
+- 입력 순서: 고정 시드 `20260925`로 셔플한 동일 배열
+- 측정 연산: 전체 삽입, 전체 탐색, 전체 삭제
+- 시간 단위: 마이크로초(μs)
+- 통계: 단계별 전체 시간의 평균·중앙값
+
+##### 2. Load Factor별 조회 테스트
 
 로드 팩터별 **조회 성능**을 `MyUnorderedSet<int>`와 MSVC STL의 `std::unordered_set<int>`로 비교했습니다. 원소 8,192개를 미리 삽입하고, 각 측정에서 존재하는 키 8,192개와 없는 키 8,192개를 조회합니다. 삽입·테이블 생성·버킷 준비 시간은 측정에 포함하지 않습니다.
 
@@ -262,7 +280,16 @@ void test_empty_move() {
 
 #### Release 측정 결과
 
-아래 수치는 **한 번의 실행 결과**입니다.
+##### 1. 기본 부하 테스트
+
+| 컨테이너 | 통계 | 삽입 | 탐색 | 삭제 | 합계 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| MyUnorderedSet | 평균 | 20,693 | 990 | 5,752 | 27,435 |
+| MyUnorderedSet | 중앙값 | 18,695 | 948 | 5,619 | 25,262 |
+| `std::unordered_set` | 평균 | 8,878 | 1,041 | 3,274 | 13,193 |
+| `std::unordered_set` | 중앙값 | 8,073 | 867 | 3,010 | 11,950 |
+
+##### 2. Load Factor별 조회 테스트
 
 | 실제 로드 팩터 | 버킷 수 | MyUnorderedSet 평균 / 중앙값 | std::unordered_set 평균 / 중앙값 |
 | ---: | ---: | ---: | ---: |
@@ -276,6 +303,15 @@ void test_empty_move() {
 <details>
 <summary><strong>0. STL과의 벤치마크 결과</strong></summary>
 
-이번 실행에서는 두 구현 모두 로드 팩터 2.0에서 조회 시간이 늘었습니다. `MyUnorderedSet`이 모든 조건에서 더 짧게 측정됐지만, 이 결과는 **정수 키의 조회 연산만** 비교한 것으로 삽입·삭제나 전체 컨테이너 성능의 우위를 뜻하지 않습니다. 측정값은 실행 환경에 따라 달라질 수 있습니다.
+100,000개의 고유 정수를 삽입·탐색·삭제한 전체 중앙값은 `MyUnorderedSet` 25,262μs, `std::unordered_set` 11,950μs로 STL이 약 2.11배 빨랐습니다. 단계별로는 STL이 삽입에서 약 2.32배, 탐색에서 약 1.09배, 삭제에서 약 1.87배 빨랐습니다.
+
+`MyUnorderedSet`은 버킷 노드와 전체 순회용 연결 리스트를 함께 관리하므로 삽입과 삭제 시 두 구조를 갱신합니다. 탐색은 버킷 내부만 확인하므로 차이가 작았고, 추가 관리 작업이 필요한 삽입과 삭제에서 차이가 크게 나타났습니다.
+
+</details>
+
+<details>
+<summary><strong>1. Load Factor에 따른 조회 성능</strong></summary>
+
+두 구현 모두 로드 팩터 2.0에서 조회 시간이 증가했습니다. 하나의 버킷에 포함되는 원소가 늘어날수록 충돌한 노드를 순차적으로 확인하는 비용이 커지기 때문입니다. 이 측정은 삽입과 삭제를 제외한 조회 전용 결과이며, 로드 팩터에 따른 탐색 비용의 변화를 확인하는 보조 테스트입니다.
 
 </details>

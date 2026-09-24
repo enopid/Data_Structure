@@ -211,36 +211,85 @@ require(values.Size() == 1 && *values.begin() == 3, "tree cannot be reused after
 # 유효성 테스트
 .\DataStructure\06_MyOrderedTree\Bin\Release\MyOrderedTree.exe
 
-# 벤치마크: benchmark [원소 수] [반복 횟수]
-.\DataStructure\06_MyOrderedTree\Bin\Release\MyOrderedTree.exe benchmark 10000 15
+# 기본 부하 테스트: benchmark [원소 수] [반복 횟수]
+.\DataStructure\06_MyOrderedTree\Bin\Release\MyOrderedTree.exe benchmark 100000 15
+
+# Ordered/Unordered 비교: compare [원소 수] [반복 횟수]
+.\DataStructure\06_MyOrderedTree\Bin\Release\MyOrderedTree.exe compare 100000 15
+
+# 기존 복합 연산 테스트: mixed [원소 수] [반복 횟수]
+.\DataStructure\06_MyOrderedTree\Bin\Release\MyOrderedTree.exe mixed 10000 15
 ```
 
 #### 측정 조건
 
-동일한 무작위 키 배열을 사용해 `MyOrderedSet<int>`와 MSVC STL의 `std::set<int>`를 비교했습니다. 각 회차는 새 컨테이너에서 시작하며 전체 삽입, 전체 검색, 절반 삭제, 삭제 원소 재삽입, 전체 순회를 순서대로 수행합니다. 각 단계가 끝난 뒤 검색 개수·크기·합계를 확인하여 잘못된 결과가 성능 수치에 포함되지 않도록 했습니다.
+##### 1. 기본 부하 테스트
+
+고정 시드로 셔플한 동일한 고유 정수 키를 `MyOrderedSet<int>`와 MSVC STL의 `std::set<int>`에 삽입하고, 전체 키를 탐색한 뒤 같은 순서로 모두 삭제합니다. 해시 프로젝트의 기본 부하 테스트와 입력·원소 수·반복 횟수·측정 연산을 동일하게 구성했습니다.
 
 - 빌드 구성: `Release x64`
-- 원소 수: 10,000개
+- 원소 수: 100,000개
+- 반복 횟수: 컨테이너별 15회
+- 입력 순서: 고정 시드 `20260925`로 셔플한 동일 배열
+- 측정 연산: 전체 삽입, 전체 탐색, 전체 삭제
+- 시간 단위: 마이크로초(μs)
+- 통계: 단계별 전체 시간의 평균·중앙값
+
+##### 2. Ordered/Unordered 비교
+
+동일하게 셔플한 고유 정수 키를 `MyOrderedSet`, `MyUnorderedSet`, `std::set`, `std::unordered_set`에 삽입하고, 전체 키를 탐색한 뒤 같은 순서로 모두 삭제합니다. 네 컨테이너는 매 회차 새로 생성하며 각 단계가 끝난 뒤 크기와 탐색 성공 횟수를 검증합니다.
+
+- 빌드 구성: `Release x64`
+- 원소 수: 100,000개
 - 반복 횟수: 컨테이너별 15회
 - 입력 순서: 고정 시드로 셔플한 동일 배열
+- 측정 연산: 전체 삽입, 전체 탐색, 전체 삭제
 - 시간 단위: 마이크로초(μs)
 - 통계: 단계별 전체 시간의 평균·중앙값
 
 #### Release 측정 결과
 
-| 컨테이너 | 통계 | 삽입 | 검색 | 절반 삭제 | 재삽입 | 순회 | 합계 |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| MyOrderedSet | 평균 | 1,496 | 786 | 559 | 682 | 94 | 3,617 |
-| MyOrderedSet | 중앙값 | 1,458 | 762 | 543 | 668 | 93 | 3,524 |
-| std::set | 평균 | 1,281 | 792 | 912 | 618 | 96 | 3,699 |
-| std::set | 중앙값 | 1,281 | 774 | 886 | 617 | 97 | 3,655 |
+##### 1. 기본 부하 테스트
+
+| 컨테이너 | 통계 | 삽입 | 탐색 | 삭제 | 합계 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| MyOrderedSet | 평균 | 24,099 | 14,632 | 20,530 | 59,261 |
+| MyOrderedSet | 중앙값 | 23,869 | 14,072 | 20,149 | 58,090 |
+| `std::set` | 평균 | 20,792 | 15,326 | 30,246 | 66,364 |
+| `std::set` | 중앙값 | 20,331 | 15,326 | 29,393 | 65,050 |
+
+##### 2. Ordered/Unordered 비교
+
+| 컨테이너 | 통계 | 삽입 | 탐색 | 삭제 | 합계 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| MyOrderedSet | 평균 | 24,016 | 13,832 | 18,980 | 56,828 |
+| MyOrderedSet | 중앙값 | 23,748 | 13,292 | 18,068 | 55,108 |
+| MyUnorderedSet | 평균 | 17,878 | 779 | 4,968 | 23,625 |
+| MyUnorderedSet | 중앙값 | 17,102 | 729 | 4,673 | 22,504 |
+| `std::set` | 평균 | 20,499 | 17,554 | 30,284 | 68,337 |
+| `std::set` | 중앙값 | 20,164 | 16,844 | 28,542 | 65,550 |
+| `std::unordered_set` | 평균 | 7,434 | 829 | 2,984 | 11,247 |
+| `std::unordered_set` | 중앙값 | 7,227 | 780 | 2,725 | 10,732 |
 
 #### Release 측정 결과 분석
 
 <details>
 <summary><strong>0. STL과의 벤치마크 결과</strong></summary>
 
-이번 실행에서는 `std::set`이 최초 삽입과 재삽입에서 빨랐고, `MyOrderedSet`은 삭제가 빠르게 측정됐습니다. 검색과 순회는 유사했으며, 전체 중앙값은 `MyOrderedSet`이 약 3.6% 낮았습니다. 결과는 단일 실행 환경의 측정치이므로 절대적인 우열보다 구현별 연산 특성을 비교하는 자료로 사용합니다.
+100,000개의 고유 정수를 삽입·탐색·삭제한 결과, `std::set`은 삽입에서 약 1.17배 빨랐고 탐색은 유사했습니다. `MyOrderedSet`은 삭제에서 약 1.46배 빨랐으며, 전체 중앙값은 58,090μs와 65,050μs로 약 10.7% 낮았습니다. 두 컨테이너에 동일한 작업을 적용했으므로 단계별 구현 특성을 직접 비교할 수 있습니다.
+
+</details>
+
+<details>
+<summary><strong>1. Ordered/Unordered 벤치마크 결과</strong></summary>
+
+100,000개의 고유 정수를 삽입·탐색·삭제한 결과, Unordered 컨테이너가 모든 측정 단계에서 Ordered 컨테이너보다 빠르게 측정됐습니다.
+
+MyUnorderedSet은 MyOrderedSet보다 삽입에서 약 1.39배, 탐색에서 약 18.23배, 삭제에서 약 3.87배 빨랐습니다. 전체 중앙값은 22,504μs와 55,108μs로 MyUnorderedSet이 약 2.45배 빨랐습니다.
+
+`std::unordered_set`은 `std::set`보다 삽입에서 약 2.79배, 탐색에서 약 21.59배, 삭제에서 약 10.47배 빨랐습니다. 전체 중앙값은 10,732μs와 65,550μs로 `std::unordered_set`이 약 6.11배 빨랐습니다.
+
+Hash Table은 평균적으로 삽입·탐색·삭제를 $O(1)$에 처리하므로, 각 연산에 $O(\log N)$이 필요한 Red-Black Tree보다 이번 키 기반 작업에서 유리했습니다. 반면 Red-Black Tree는 키의 정렬 상태를 유지하고 최악의 경우에도 $O(\log N)$의 연산 복잡도를 보장합니다. 따라서 정렬 순회와 범위 기반 처리가 필요하지 않은 단순 키 조회에는 Unordered 컨테이너가 적합하고, 정렬된 데이터와 안정적인 최악 시간 복잡도가 필요하면 Ordered 컨테이너가 적합합니다.
 
 </details>
 

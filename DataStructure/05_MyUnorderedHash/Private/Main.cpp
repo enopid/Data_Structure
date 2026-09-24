@@ -9,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <random>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -214,17 +215,140 @@ void run_load_factor_benchmark(int elements, int repetitions) {
     }
 }
 
+struct PhaseTimes {
+    long long insert_us = 0;
+    long long find_us = 0;
+    long long remove_us = 0;
+
+    long long total_us() const { return insert_us + find_us + remove_us; }
+};
+
+struct BenchmarkSummary {
+    PhaseTimes average;
+    PhaseTimes median;
+};
+
+void insert_value(MyUnorderedSet<int>& values, int key) { values.Insert(key); }
+void insert_value(std::unordered_set<int>& values, int key) { values.insert(key); }
+bool contains_value(MyUnorderedSet<int>& values, int key) { return values.Find(key) != nullptr; }
+bool contains_value(std::unordered_set<int>& values, int key) {
+    return values.find(key) != values.end();
+}
+void remove_value(MyUnorderedSet<int>& values, int key) { values.Remove(key); }
+void remove_value(std::unordered_set<int>& values, int key) { values.erase(key); }
+int container_size(MyUnorderedSet<int>& values) { return values.Size(); }
+int container_size(std::unordered_set<int>& values) { return static_cast<int>(values.size()); }
+
+template<typename Set>
+PhaseTimes run_benchmark_once(const std::vector<int>& keys) {
+    Set values;
+    PhaseTimes times;
+
+    auto start = std::chrono::steady_clock::now();
+    for (int key : keys) insert_value(values, key);
+    auto end = std::chrono::steady_clock::now();
+    times.insert_us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    require(container_size(values) == static_cast<int>(keys.size()),
+            "benchmark insertion failed");
+
+    start = std::chrono::steady_clock::now();
+    int found = 0;
+    for (int key : keys) found += contains_value(values, key);
+    end = std::chrono::steady_clock::now();
+    times.find_us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    require(found == static_cast<int>(keys.size()), "benchmark lookup failed");
+
+    start = std::chrono::steady_clock::now();
+    for (int key : keys) remove_value(values, key);
+    end = std::chrono::steady_clock::now();
+    times.remove_us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    require(container_size(values) == 0, "benchmark removal failed");
+    return times;
+}
+
+PhaseTimes median_phase_times(const std::vector<PhaseTimes>& values) {
+    const auto median_of = [&values](auto member) {
+        std::vector<long long> samples;
+        samples.reserve(values.size());
+        for (const auto& value : values) samples.push_back(value.*member);
+        std::sort(samples.begin(), samples.end());
+        const std::size_t middle = samples.size() / 2;
+        return samples.size() % 2 == 1
+            ? samples[middle]
+            : (samples[middle - 1] + samples[middle]) / 2;
+    };
+    return {
+        median_of(&PhaseTimes::insert_us),
+        median_of(&PhaseTimes::find_us),
+        median_of(&PhaseTimes::remove_us)
+    };
+}
+
+template<typename Set>
+BenchmarkSummary measure_benchmark(const std::vector<int>& keys, int repetitions) {
+    std::vector<PhaseTimes> samples;
+    samples.reserve(static_cast<std::size_t>(repetitions));
+    PhaseTimes total;
+    for (int repeat = 0; repeat < repetitions; ++repeat) {
+        const auto current = run_benchmark_once<Set>(keys);
+        samples.push_back(current);
+        total.insert_us += current.insert_us;
+        total.find_us += current.find_us;
+        total.remove_us += current.remove_us;
+    }
+    return {
+        {total.insert_us / repetitions, total.find_us / repetitions,
+         total.remove_us / repetitions},
+        median_phase_times(samples)
+    };
+}
+
+void print_benchmark_result(const char* name, const BenchmarkSummary& result) {
+    std::cout << name << '\n'
+              << "  Average (us) : insert=" << result.average.insert_us
+              << ", find=" << result.average.find_us
+              << ", remove=" << result.average.remove_us
+              << ", total=" << result.average.total_us() << '\n'
+              << "  Median  (us) : insert=" << result.median.insert_us
+              << ", find=" << result.median.find_us
+              << ", remove=" << result.median.remove_us
+              << ", total=" << result.median.total_us() << "\n\n";
+}
+
+void run_benchmark(int elements, int repetitions) {
+    std::vector<int> keys(static_cast<std::size_t>(elements));
+    std::iota(keys.begin(), keys.end(), 0);
+    std::mt19937 random(20260925);
+    std::shuffle(keys.begin(), keys.end(), random);
+
+    std::cout << "Unordered-set insert/find/remove benchmark\n"
+              << "  Build       : " << test_support::build_configuration() << " x64\n"
+              << "  Elements    : " << elements << '\n'
+              << "  Repetitions : " << repetitions << " per container\n"
+              << "  Workload    : insert all, find all, remove all\n"
+              << "  Time unit   : microseconds (us)\n\n";
+
+    print_benchmark_result(
+        "MyUnorderedSet", measure_benchmark<MyUnorderedSet<int>>(keys, repetitions));
+    print_benchmark_result(
+        "std::unordered_set", measure_benchmark<std::unordered_set<int>>(keys, repetitions));
+}
+
 } // namespace
 
 int main(int argc, char* argv[]) {
-    if (argc > 1 && std::string(argv[1]) == "benchmark") {
-        const int elements = argc > 2 ? std::stoi(argv[2]) : 8192;
+    if (argc > 1 && (std::string(argv[1]) == "benchmark"
+        || std::string(argv[1]) == "load-factor")) {
+        const bool load_factor = std::string(argv[1]) == "load-factor";
+        const int elements = argc > 2 ? std::stoi(argv[2]) : (load_factor ? 8192 : 100000);
         const int repetitions = argc > 3 ? std::stoi(argv[3]) : 15;
         if (elements < 1 || repetitions < 1 || elements > 1000000 || repetitions > 10000) {
-            std::cerr << "Usage: MyUnorderedHash.exe benchmark [elements: 1..1000000] [repetitions: 1..10000]\n";
+            std::cerr << "Usage: MyUnorderedHash.exe [benchmark|load-factor] "
+                         "[elements: 1..1000000] [repetitions: 1..10000]\n";
             return 1;
         }
-        run_load_factor_benchmark(elements, repetitions);
+        if (load_factor) run_load_factor_benchmark(elements, repetitions);
+        else run_benchmark(elements, repetitions);
         return 0;
     }
     test_support::TestRunner runner(9);
