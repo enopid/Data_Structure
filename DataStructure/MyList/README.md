@@ -308,7 +308,7 @@ void test_against_std_list() {
 
 ```powershell
 # int 벤치마크
-MyList.exe --benchmark 10000 30 int
+MyList.exe --benchmark 1000000 30 int
 
 # std::string 벤치마크
 MyList.exe --benchmark 10000 5 string
@@ -322,7 +322,7 @@ MyList.exe --benchmark 10000 5 string
 
 - 빌드 구성: `Release x64`
 - 측정 연산: 순차 `push_back`
-- 입력 크기: 각 컨테이너에 원소 10,000개 추가
+- 입력 크기: `int` 1,000,000개, `std::string` 10,000개
 - 시간 단위: 마이크로초(μs)
 - 통계: 평균값, 중앙값, 최솟값, 최댓값
 
@@ -330,12 +330,12 @@ MyList.exe --benchmark 10000 5 string
 
 ##### `int`
 
-원소 10,000개를 각 컨테이너에서 30회씩 측정했습니다.
+원소 1,000,000개를 각 컨테이너에서 30회씩 측정했습니다.
 
 | 컨테이너 | 평균 | 중앙값 | 최소 | 최대 |
 | --- | ---: | ---: | ---: | ---: |
-| MyLinkedList | 448μs | 442μs | 434μs | 492μs |
-| `std::list` | 427μs | 425μs | 392μs | 512μs |
+| MyLinkedList | 51,289μs | 50,680μs | 48,164μs | 56,071μs |
+| `std::list` | 52,695μs | 52,243μs | 49,016μs | 58,310μs |
 
 ##### `std::string`
 
@@ -348,7 +348,34 @@ MyList.exe --benchmark 10000 5 string
 
 #### Release 측정 결과 분석
 
-두 원소 타입 모두 측정에서 `std::list`의 평균값과 중앙값이 MyLinkedList보다 낮았습니다. `int`의 중앙값 차이는 17μs, `std::string`의 중앙값 차이는 39μs였습니다.
+1,000,000개의 `int`를 삽입한 결과 MyLinkedList와 `std::list`는 유사한 성능을 보였다. 중앙값은 MyLinkedList가 50,680μs, `std::list`가 52,243μs로 MyLinkedList가 약 3.0% 빠르게 측정되었다. 두 구현 모두 원소마다 노드를 개별 할당하는 동일한 구조적 비용을 가지므로 구현 세부사항에 따른 차이가 전체 시간에서 크게 나타나지 않았다.
+
+`std::string` 10,000개 측정에서는 `std::list`의 중앙값이 MyLinkedList보다 39μs 낮았다. 실행 시간은 메모리 할당자, 캐시 및 시스템 상태의 영향을 받으므로 이 정도 차이만으로 한쪽 구현이 항상 빠르다고 일반화하기는 어렵다.
+
+<details>
+<summary><strong>Vector와 순차 삽입 성능 비교</strong></summary>
+
+동일하게 1,000,000개의 `int`를 순차적으로 `push_back`한 Vector 측정 결과와 비교하면 다음과 같다.
+
+| 컨테이너 | 평균 | 중앙값 |
+| --- | ---: | ---: |
+| MyLinkedList | 51,289μs | 50,680μs |
+| `std::list` | 52,695μs | 52,243μs |
+| MyVector Factor 1.5 | 3,120μs | 2,992μs |
+| MyVector Factor 2.0 | 2,093μs | 1,875μs |
+| `std::vector` | 3,151μs | 2,858μs |
+
+중앙값을 기준으로 MyLinkedList는 MyVector Factor 1.5보다 약 16.9배 느렸으며, `std::list`는 `std::vector`보다 약 18.3배 느렸다.
+
+$$\frac{50,680}{2,992} \approx 16.9$$
+
+$$\frac{52,243}{2,858} \approx 18.3$$
+
+순차 `push_back`은 Vector에 유리한 작업이다. List는 원소를 추가할 때마다 새로운 노드를 동적 할당하고 이전·다음 노드 포인터를 연결해야 한다. 각 노드는 메모리상에서 떨어져 있을 수 있어 메모리 접근의 지역성도 낮다.
+
+반면 Vector는 연속된 메모리 공간에 원소를 배치하며, 1,000,000개를 삽입하는 동안 MyVector Factor 1.5는 34회, `std::vector`는 35회만 재할당했다. `int`는 재할당 시 연속 메모리를 `memcpy`로 옮길 수 있으므로 노드를 1,000,000번 개별 할당하는 List보다 순차 삽입에서 유리하다.
+
+</details>
 
 현재 벤치마크는 순차 `push_back`만 비교합니다. 실행 시간은 메모리 할당자, 캐시 및 시스템 상태의 영향을 받으므로 결과는 현재 환경과 입력 조건에 한정합니다.
 

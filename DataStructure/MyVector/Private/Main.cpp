@@ -337,7 +337,7 @@ int main(int argc, char* argv[]) {
         const int           count           = argc > 2 ? std::stoi(argv[2]) : 100000;
         const int           repetitions     = argc > 3 ? std::stoi(argv[3]) : 10;
         const std::string   type            = argc > 4 ? argv[4] : "int";
-        const bool          bSkipLinearTest = argc > 5 ? true : false;
+        const bool          bSkipLinearTest = true;
         if (count <= 0 || repetitions <= 0) {
             std::cerr << "Element count and repetitions must be positive integers.\n";
             return 1;
