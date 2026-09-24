@@ -11,14 +11,32 @@
 ## 개요
 
 `MyLinkedList<T>`는 STL의 `std::list`를 따라 구현한 양방향 연결 리스트입니다.<br>
-각 원소를 독립된 노드에 저장하며, 모든 노드는 이전 노드와 다음 노드를 가리킵니다.
+각 **센티널 노드**를 기반으로 양단의 원소 관리를 용이하게 했습니다.
+<details>
+<summary>(Sentinel이라는 용어와 방식은 stl에서 사용하는 방식을 참고 했습니니다)</summary>
+```cpp
+    // stl의 list 코드 중 일부 발췌
+    // 센티넬 노드(_Mypair._Myval2._Myhead)의 다음 노드가 begin() 노드
+    _NODISCARD iterator begin() noexcept {
+        return iterator(_Mypair._Myval2._Myhead->_Next, _STD addressof(_Mypair._Myval2));
+    }
+
+    // 센티넬 노드(_Mypair._Myval2._Myhead)의 노드가 end() 노드
+    _NODISCARD iterator end() noexcept {
+        return iterator(_Mypair._Myval2._Myhead, _STD addressof(_Mypair._Myval2));
+    }
+```
+</details>
 
 ### 구현 중심점
 
-- 이전·다음 노드를 모두 연결하는 Doubly Linked List 구조
+- 이전·다음 노드를 모두 연결하는 Doubly Linked List 구조 구현
 - 처음과 끝의 예외 처리를 단순화하기 위한 Sentinel Node 사용
+  (양단 노드 처리 단순화)
 - 일반(begin)·상수(cbegin)·역방향(rbegin) 반복자 구현
+  (Itertator 패턴 구현)
 - 복사·이동 생성자와 복사·이동 대입 연산자 구현
+  (rule of five)
 
 ## 포함 기능
 
@@ -325,7 +343,9 @@ MyList.exe --benchmark 10000 5 string
 | MyLinkedList | 1,234μs | 1,225μs | 1,162μs | 1,324μs |
 | `std::list` | 1,190μs | 1,186μs | 1,122μs | 1,318μs |
 
-두 원소 타입 모두 이번 측정에서는 `std::list`의 평균값과 중앙값이 MyLinkedList보다 낮았습니다. `int`의 중앙값 차이는 17μs, `std::string`의 중앙값 차이는 39μs였습니다.
+#### Release 측정 결과 분석
+
+두 원소 타입 모두 측정에서 `std::list`의 평균값과 중앙값이 MyLinkedList보다 낮았습니다. `int`의 중앙값 차이는 17μs, `std::string`의 중앙값 차이는 39μs였습니다.
 
 현재 벤치마크는 순차 `push_back`만 비교합니다. 실행 시간은 메모리 할당자, 캐시 및 시스템 상태의 영향을 받으므로 결과는 현재 환경과 입력 조건에 한정합니다.
 
