@@ -16,8 +16,10 @@
 ### 구현 중심점
 
 - 배열 기반 Binary Heap
-- 비교자 `Comp`를 통한 최대 힙·최소 힙 구성
-- 세대 번호가 포함된 핸들을 통한 원소 추적
+- 비교자 `Comp`를 통한 최대 힙·최소 힙 구성<br>
+  (comp를 통한 커스텀 비교 힙 지원)
+- 세대 번호가 포함된 핸들을 통한 원소 추적<br>
+  (decreasing key 지원)
 - 원소 이동 시 핸들이 가리키는 힙 인덱스 동기화
 - `update`를 이용한 우선순위 증가 및 감소
 - 제거되거나 재사용된 핸들의 유효성 검사
@@ -241,7 +243,9 @@ MyPriorityQueue.exe --benchmark 100000 30
 
 이번 조건에서 `std::priority_queue`의 중앙값은 MyPriorityQueue보다 약 2.51배 빨랐습니다.
 
-MyPriorityQueue는 `std::priority_queue`보다 성능이 낮지만, 이는 각 원소의 핸들을 관리하고 노드 교환 시 힙 인덱스를 함께 갱신하는 비용 때문입니다. 대신 `std::priority_queue`가 지원하지 않는 decrease-key와 임의 원소 갱신·삭제를 핸들을 통해 지원합니다.
+MyPriorityQueue는 `std::priority_queue`보다 성능이 낮지만, 이는 각 원소의 핸들을 관리하고 노드 교환 시 힙 인덱스를 함께 갱신하는 비용 때문입니다. 
+
+대신 `std::priority_queue`가 지원하지 않는 decrease-key와 임의 원소 갱신·삭제를 핸들을 통해 지원합니다.
 
 </details>
 
