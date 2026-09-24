@@ -293,6 +293,25 @@ BenchmarkResult measure_std_deque(
     });
 }
 
+template <typename Container>
+long long run_push_back_workload(int element_count) {
+    Container values;
+    for (int value = 0; value < element_count; ++value) {
+        values.push_back(value);
+    }
+    return static_cast<long long>(values.front())
+        + static_cast<long long>(values.back())
+        + static_cast<long long>(values.size());
+}
+
+template <typename Container>
+BenchmarkResult measure_push_back(
+    const std::string& name, int element_count, int repetitions) {
+    return measure_repeated(name, repetitions, [element_count] {
+        return run_push_back_workload<Container>(element_count);
+    });
+}
+
 void print_benchmark_result(int case_number, const BenchmarkResult& result,
                             int chunk_bytes, int elements_per_chunk) {
     std::cout << "\n[Case " << case_number << "] " << result.name << '\n';
@@ -341,17 +360,67 @@ int run_benchmark(int operation_count, int repetitions) {
     return 0;
 }
 
+void print_push_back_result(int case_number, const BenchmarkResult& result) {
+    std::cout << "\n[Case " << case_number << "] " << result.name << '\n'
+              << "  Average time      : " << result.average_microseconds << " us\n"
+              << "  Median time       : " << result.median_microseconds << " us\n"
+              << "  Minimum time      : " << result.minimum_microseconds << " us\n"
+              << "  Maximum time      : " << result.maximum_microseconds << " us\n"
+              << "  Checksum          : " << result.checksum << '\n';
+}
+
+int run_push_back_benchmark(int element_count, int repetitions) {
+    const auto chunk16 = measure_push_back<MyDeque<int, 16>>(
+        "MyDeque<int, 16>", element_count, repetitions);
+    const auto chunk64 = measure_push_back<MyDeque<int, 64>>(
+        "MyDeque<int, 64>", element_count, repetitions);
+    const auto chunk256 = measure_push_back<MyDeque<int, 256>>(
+        "MyDeque<int, 256>", element_count, repetitions);
+    const auto chunk1024 = measure_push_back<MyDeque<int, 1024>>(
+        "MyDeque<int, 1024>", element_count, repetitions);
+    const auto chunk4096 = measure_push_back<MyDeque<int, 4096>>(
+        "MyDeque<int, 4096>", element_count, repetitions);
+    const auto standard_deque = measure_push_back<std::deque<int>>(
+        "std::deque<int>", element_count, repetitions);
+
+    for (const auto& result : {chunk16, chunk64, chunk256, chunk1024, chunk4096,
+                               standard_deque}) {
+        require(result.checksum == standard_deque.checksum,
+                "push_back benchmark checksum mismatch");
+    }
+
+    std::cout << "Sequential push_back benchmark\n"
+              << "  Current build     : " << test_support::build_configuration() << " x64\n"
+              << "  Recommended build : Release x64\n"
+              << "  Element type      : int\n"
+              << "  Workload          : sequential push_back only\n"
+              << "  Elements          : " << element_count << '\n'
+              << "  Measurements      : " << repetitions << " per case\n"
+              << "  Time unit         : microseconds (us)\n";
+
+    int case_number = 0;
+    for (const auto& result : {chunk16, chunk64, chunk256, chunk1024, chunk4096,
+                               standard_deque}) {
+        print_push_back_result(++case_number, result);
+    }
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char* argv[]) {
-    if (argc > 1 && std::string(argv[1]) == "--benchmark") {
+    if (argc > 1 && (std::string(argv[1]) == "--benchmark"
+        || std::string(argv[1]) == "--push-back-benchmark")) {
+        const bool push_back_only = std::string(argv[1]) == "--push-back-benchmark";
         const int operation_count = argc > 2 ? std::stoi(argv[2]) : 100000;
         const int repetitions = argc > 3 ? std::stoi(argv[3]) : 10;
         if (operation_count <= 0 || repetitions <= 0) {
             std::cerr << "Operation count and repetitions must be positive integers.\n";
             return 1;
         }
-        return run_benchmark(operation_count, repetitions);
+        return push_back_only
+            ? run_push_back_benchmark(operation_count, repetitions)
+            : run_benchmark(operation_count, repetitions);
     }
 
     std::cout << "MyDeque validity tests ("
