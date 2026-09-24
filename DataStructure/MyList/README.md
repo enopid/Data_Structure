@@ -348,12 +348,8 @@ MyList.exe --benchmark 10000 5 string
 
 #### Release 측정 결과 분석
 
-1,000,000개의 `int`를 삽입한 결과 MyLinkedList와 `std::list`는 유사한 성능을 보였다. 중앙값은 MyLinkedList가 50,680μs, `std::list`가 52,243μs로 MyLinkedList가 약 3.0% 빠르게 측정되었다. 두 구현 모두 원소마다 노드를 개별 할당하는 동일한 구조적 비용을 가지므로 구현 세부사항에 따른 차이가 전체 시간에서 크게 나타나지 않았다.
-
-`std::string` 10,000개 측정에서는 `std::list`의 중앙값이 MyLinkedList보다 39μs 낮았다. 실행 시간은 메모리 할당자, 캐시 및 시스템 상태의 영향을 받으므로 이 정도 차이만으로 한쪽 구현이 항상 빠르다고 일반화하기는 어렵다.
-
 <details>
-<summary><strong>Vector와 순차 삽입 성능 비교</strong></summary>
+<summary><strong>0.Vector와 순차 삽입 성능 비교</strong></summary>
 
 동일하게 1,000,000개의 `int`를 순차적으로 `push_back`한 Vector 측정 결과와 비교하면 다음과 같다.
 
@@ -375,6 +371,14 @@ $$\frac{52,243}{2,858} \approx 18.3$$
 
 반면 Vector는 연속된 메모리 공간에 원소를 배치하며, 1,000,000개를 삽입하는 동안 MyVector Factor 1.5는 34회, `std::vector`는 35회만 재할당했다. `int`는 재할당 시 연속 메모리를 `memcpy`로 옮길 수 있으므로 노드를 1,000,000번 개별 할당하는 List보다 순차 삽입에서 유리하다.
 
+</details>
+
+<details>
+<summary><strong>1.stl 리스트와 벤치마크 분석</strong></summary>
+
+1,000,000개의 `int`를 삽입한 결과 MyLinkedList와 `std::list`는 유사한 성능을 보였다. 중앙값은 MyLinkedList가 50,680μs, `std::list`가 52,243μs로 MyLinkedList가 약 3.0% 빠르게 측정되었다. 두 구현 모두 원소마다 노드를 개별 할당하는 동일한 구조적 비용을 가지므로 구현 세부사항에 따른 차이가 전체 시간에서 크게 나타나지 않았다.
+
+`std::string` 10,000개 측정에서는 `std::list`의 중앙값이 MyLinkedList보다 39μs 낮았다. 실행 시간은 메모리 할당자, 캐시 및 시스템 상태의 영향을 받으므로 이 정도 차이만으로 한쪽 구현이 항상 빠르다고 일반화하기는 어렵다.
 </details>
 
 현재 벤치마크는 순차 `push_back`만 비교합니다. 실행 시간은 메모리 할당자, 캐시 및 시스템 상태의 영향을 받으므로 결과는 현재 환경과 입력 조건에 한정합니다.
