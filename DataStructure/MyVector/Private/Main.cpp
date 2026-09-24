@@ -190,7 +190,7 @@ void test_growth_factor_change() {
 }
 
 struct BenchmarkResult {
-    std::string name;
+    std::string name = "None";
     long long average_microseconds;
     long long median_microseconds;
     long long minimum_microseconds;
@@ -268,7 +268,7 @@ BenchmarkResult measure_std_vector(const std::vector<T>& input) {
 }
 
 template <typename T>
-void run_benchmark(const std::vector<T>& input, int repetitions, const std::string& type_name) {
+void run_benchmark(const std::vector<T>& input, int repetitions, const std::string& type_name, bool bSkipLinearTest) {
     MyVector<T>::set_growth_factor(1.5);
     const auto default_growth = measure_repeated(repetitions, [&input] {
         return measure("MyVector Geometric Growth (factor 1.5 default)", input,
@@ -279,10 +279,15 @@ void run_benchmark(const std::vector<T>& input, int repetitions, const std::stri
         return measure("MyVector Geometric Growth (factor 2.0 custom)", input,
             [](MyVector<T>& values, const T& value) { values.push_back(value); });
     });
-    const auto linear = measure_repeated(repetitions, [&input] {
-        return measure("MyVector Linear Growth (+10 capacity)", input,
-            [](MyVector<T>& values, const T& value) { values.linear_push_back(value); });
-    });
+
+    BenchmarkResult linear = BenchmarkResult();
+    if (!bSkipLinearTest) {
+        linear = measure_repeated(repetitions, [&input] {
+            return measure("MyVector Linear Growth (+10 capacity)", input,
+                [](MyVector<T>& values, const T& value) { values.linear_push_back(value); });
+            });
+    }
+
     const auto std_vector = measure_repeated(repetitions, [&input] {
         return measure_std_vector(input);
     });
@@ -299,6 +304,7 @@ void run_benchmark(const std::vector<T>& input, int repetitions, const std::stri
 
     int case_number = 0;
     for (const auto& result : {default_growth, doubled_growth, linear, std_vector}) {
+        if (result.name == "None") continue;
         std::cout << "\n[Case " << ++case_number << "] " << result.name << '\n'
                   << "  Elements inserted : " << input.size() << '\n'
                   << "  Average time      : " << result.average_microseconds << " us\n"
@@ -328,18 +334,19 @@ int run_tests() {
 
 int main(int argc, char* argv[]) {
     if (argc > 1 && std::string(argv[1]) == "--benchmark") {
-        const int count = argc > 2 ? std::stoi(argv[2]) : 100000;
-        const int repetitions = argc > 3 ? std::stoi(argv[3]) : 10;
-        const std::string type = argc > 4 ? argv[4] : "int";
+        const int           count           = argc > 2 ? std::stoi(argv[2]) : 100000;
+        const int           repetitions     = argc > 3 ? std::stoi(argv[3]) : 10;
+        const std::string   type            = argc > 4 ? argv[4] : "int";
+        const bool          bSkipLinearTest = argc > 5 ? true : false;
         if (count <= 0 || repetitions <= 0) {
             std::cerr << "Element count and repetitions must be positive integers.\n";
             return 1;
         }
         if (type == "int") {
-            run_benchmark(test_support::make_int_input(count), repetitions, "int");
+            run_benchmark(test_support::make_int_input(count), repetitions, "int", bSkipLinearTest);
         } else if (type == "string") {
             run_benchmark(test_support::make_string_input(count, 20260827), repetitions,
-                          "std::string (24 random characters)");
+                          "std::string (24 random characters)", bSkipLinearTest);
         } else {
             std::cerr << "Element type must be 'int' or 'string'.\n";
             return 1;
