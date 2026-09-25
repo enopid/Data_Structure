@@ -15,14 +15,14 @@ C++ 표준 라이브러리의 자료구조를 직접 구현하고, 내부 동작
 
 ## 구현 목록
 
-| 자료구조 | 상태 | 설명 |
+| 자료구조 | 핵심 구현 | 핵심 분석 |
 | --- | --- | --- |
-| [MyVector](DataStructure/01_MyVector/README.md) | 구현·분석 | 연속 메모리 기반 동적 배열 |
-| [MyList](DataStructure/02_MyList/README.md) | 구현·분석 | 양방향 연결 리스트 |
-| [MyDeque](DataStructure/03_MyDeque/README.md) | 구현·분석 | Chunked Ring Buffer Deque |
-| [MyPriorityQueue](DataStructure/04_MyPriorityQueue/README.md) | 구현·분석 | Binary Heap과 Handle 기반 Decrease-Key |
-| [MyUnorderedHash](DataStructure/05_MyUnorderedHash/README.md) | 구현·분석 | Hash Table 기반 Set/Map/MultiSet/MultiMap |
-| [MyOrderedTree](DataStructure/06_MyOrderedTree/README.md) | 구현·분석 | Red-Black Tree 기반 Set/Map/MultiSet/MultiMap |
+| [MyVector](DataStructure/01_MyVector/README.md) | 연속 메모리, 직접 객체 수명 관리, 복사·이동, 가변 성장 계수 | 성장 계수 1.5/2.0과 선형 증가 방식의 재할당 횟수·삽입 시간 비교 |
+| [MyList](DataStructure/02_MyList/README.md) | Sentinel 기반 양방향 연결 리스트와 양방향 iterator | 노드 기반 순차 삽입을 `std::list` 및 연속 메모리 컨테이너와 비교 |
+| [MyDeque](DataStructure/03_MyDeque/README.md) | 청크 배열과 링 구조를 결합한 양방향 큐 | 청크 크기별 순차·복합 연산 비용 및 `std::deque`의 작은 청크 정책 비교 |
+| [MyPriorityQueue](DataStructure/04_MyPriorityQueue/README.md) | Binary Heap, 세대 기반 Handle, `update`·`erase`·Decrease-Key | STL 기본 힙 연산과 비교하고 추가 기능의 핸들 관리 비용 분석 |
+| [MyUnorderedHash](DataStructure/05_MyUnorderedHash/README.md) | 버킷별 리스트 구간과 Set/Map/Multi 어댑터 | `std::unordered_set`과 삽입·탐색·삭제를 비교하고 Load Factor에 따른 조회 비용 분석 |
+| [MyOrderedTree](DataStructure/06_MyOrderedTree/README.md) | Red-Black Tree의 회전·삽입/삭제 복구와 Ordered 어댑터 | `std::set` 비교 및 Ordered/Unordered의 삽입·탐색·삭제 성능 분석 |
 
 ## 프로젝트 구성
 
@@ -53,7 +53,7 @@ DataStructure/
 - 빌드 조건: 최적화가 적용된 `Release x64`를 기준으로 합니다.
 - 측정 지표: 자료구조에 따라 실행 시간, 재할당 횟수, 청크 크기 또는 로드 팩터를 비교합니다.
 
-측정 대상 연산과 입력 조건은 프로젝트마다 다릅니다. 예를 들어 해시 프로젝트의 로드 팩터 비교는 정수 키 **조회만** 측정하므로 삽입·삭제 성능까지 대표하지 않습니다. 아직 구현 전인 MyOrderedTree에는 측정 결과가 없습니다.
+측정 대상 연산과 입력 조건은 프로젝트마다 다릅니다. 예를 들어 해시 프로젝트의 로드 팩터 비교는 정수 키 **조회만** 측정하므로 삽입·삭제 성능까지 대표하지 않습니다. 각 결과는 특정 입력과 실행 환경에서 구현 선택에 따른 차이를 확인하기 위한 자료이며, 모든 환경에서의 절대적인 성능 우위를 의미하지 않습니다.
 
 ## 개발 환경
 
