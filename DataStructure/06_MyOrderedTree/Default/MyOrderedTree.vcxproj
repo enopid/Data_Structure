@@ -36,7 +36,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\Public;$(SolutionDir)05_MyUnorderedHash\Public;$(SolutionDir)02_MyList\Public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\Public;$(ProjectDir)..\..\05_MyUnorderedHash\Public;$(ProjectDir)..\..\02_MyList\Public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link><SubSystem>Console</SubSystem></Link>

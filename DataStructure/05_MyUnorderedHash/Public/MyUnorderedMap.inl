@@ -18,15 +18,15 @@ inline V MyUnorderedMap<K, V>::_ValueExtractor(const _Key_Value_Type& _keyvalue)
 
 template<typename K, typename V>
 inline V& MyUnorderedMap<K, V>::at(const K key) {
-    auto hash_node = _HashTable::Find(key);
-    if (hash_node == nullptr) throw std::runtime_error("invalid key");
-    return (*(hash_node->it)).second;
+    auto _node = _HashTable::Find(key);
+    if (_node == nullptr) throw std::runtime_error("invalid key");
+    return _node->data.second;
 }
 
 template<typename K, typename V>
 inline V& MyUnorderedMap<K, V>::operator[](const K key) {
-    auto hash_node = _HashTable::Find(key);
-    if (hash_node == nullptr) _HashTable::Insert({key, V()});
-    hash_node = _HashTable::Find(key);
-    return (*(hash_node->it)).second;
+    auto _node = _HashTable::Find(key);
+    if (_node == nullptr) _HashTable::Insert({key, V()});
+    _node = _HashTable::Find(key);
+    return _node->data.second;
 }

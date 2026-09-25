@@ -2,6 +2,9 @@
 #include<iostream>
 #include<list>
 
+template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
+class MyHashTable;
+
 template<typename T>
 class MyLinkedList;
 
@@ -10,6 +13,8 @@ std::ostream& operator<<(std::ostream& os, const MyLinkedList<T>& mylinkedlist);
 
 template<typename T>
 class MyLinkedList {
+	template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
+	friend class MyHashTable;
 private:
 	struct Node {
 		~Node();
@@ -34,6 +39,8 @@ public:
 		reference	operator*() const;
 		pointer		operator->() const;
 		template<typename> friend class MyLinkedList;
+		template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
+		friend class MyHashTable;
 
 	private:
 		Node* _ptr = nullptr;

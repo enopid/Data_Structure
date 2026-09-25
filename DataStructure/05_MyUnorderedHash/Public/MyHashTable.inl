@@ -2,13 +2,9 @@
 #pragma once
 
 template<typename K, typename V, typename KV, bool M>
-inline MyHashTable<K, V, KV, M>::HashNode::HashNode(int _hash, HashNode* next)
-    : hash(_hash), _next(next) {}
-
-template<typename K, typename V, typename KV, bool M>
 inline MyHashTable<K, V, KV, M>::MyHashTable() {
-    _buckets = new HashNode*[_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = nullptr;
+    _buckets = new std::pair<_lstNode*, _lstNode*>[_bucketSize];
+    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
     _hasher = MyHash<K>();
 }
 
@@ -21,28 +17,24 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>::MyHashTabl
     _maxLoadFactor  = other._maxLoadFactor;
     _global_list    = other._global_list;
 
-    _buckets        = new HashNode * [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = nullptr;
+    _buckets        = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
+    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
     for (auto it = _global_list.begin(); it != _global_list.end(); it++) {
         int hash = _hasher(other._KeyExtractor(*it)) % _bucketSize;
-        HashNode* curHashNode = _buckets[hash];
-        _buckets[hash] = new HashNode(hash, curHashNode);
-        _buckets[hash]->it = it;
+
+        if (!_buckets[hash].first) 
+            _buckets[hash] = { it._ptr, it._ptr };
+        else
+            _buckets[hash].second = it._ptr;
     }
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
 inline void MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>::DestroyBucket()
 {
-    for (size_t i = 0; i < _bucketSize; i++) {
-        HashNode* curHashNode = _buckets[i];
-        while (curHashNode != nullptr) {
-            auto tmpHashNode = curHashNode;
-            curHashNode = curHashNode->_next;
-            delete tmpHashNode;
-        }
-    }
     delete[] _buckets;
+    _buckets = nullptr;
+    _bucketSize = 0;
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
@@ -58,13 +50,15 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>& MyHashTabl
     _maxLoadFactor  = other._maxLoadFactor;
     _global_list    = other._global_list;
 
-    _buckets = new HashNode * [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = nullptr;
+    _buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
+    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
     for (auto it = _global_list.begin(); it != _global_list.end(); it++) {
         int hash = _hasher(other._KeyExtractor(*it)) % _bucketSize;
-        HashNode* curHashNode = _buckets[hash];
-        _buckets[hash] = new HashNode(hash, curHashNode);
-        _buckets[hash]->it = it;
+
+        if (!_buckets[hash].first)
+            _buckets[hash] = { it._ptr, it._ptr };
+        else
+            _buckets[hash].second = it._ptr;
     }
 
     return *this;
@@ -80,8 +74,8 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>::MyHashTabl
     _global_list    = std::move(other._global_list);
     _buckets        = other._buckets;
 
-    other._buckets  = new HashNode * [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) other._buckets[i] = nullptr;
+    other._buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
+    for (size_t i = 0; i < _bucketSize; i++) other._buckets[i] = { nullptr , nullptr };
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
@@ -98,8 +92,8 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>& MyHashTabl
     _global_list    = std::move(other._global_list);
     _buckets        = other._buckets;
 
-    other._buckets = new HashNode * [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) other._buckets[i] = nullptr;
+    other._buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
+    for (size_t i = 0; i < _bucketSize; i++) other._buckets[i] = { nullptr , nullptr };
 
     return *this;
 }
@@ -107,8 +101,8 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>& MyHashTabl
 template<typename K, typename V, typename KV, bool M>
 inline MyHashTable<K, V, KV, M>::MyHashTable(unsigned int max_size) {
     _bucketSize = _getNextBucketSize(max_size);
-    _buckets = new HashNode*[_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = nullptr;
+    _buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
+    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
     _hasher = MyHash<K>();
 }
 
@@ -118,13 +112,14 @@ inline MyHashTable<K, V, KV, M>::~MyHashTable() {
 }
 
 template<typename K, typename V, typename KV, bool M>
-typename MyHashTable<K, V, KV, M>::HashNode*
+typename MyHashTable<K, V, KV, M>::_lstNode*
 MyHashTable<K, V, KV, M>::Find(K key) {
     int hash = _hasher(key) % _bucketSize;
-    HashNode* curHashNode = _buckets[hash];
-    while (curHashNode != nullptr) {
-        if (_KeyExtractor(*(curHashNode->it)) == key) return curHashNode;
-        curHashNode = curHashNode->_next;
+    _lstNode* curNode = _buckets[hash].first;
+    while (curNode) {
+        if (_KeyExtractor(curNode->data) == key) return curNode;
+        curNode = curNode->next;
+        if (_buckets[hash].second == curNode->prev) break;
     }
     return nullptr;
 }
@@ -137,31 +132,51 @@ inline void MyHashTable<K, V, KV, M>::Insert(KV value) {
     if (usingAutoRehash) Rehash(0);
 
     int hash = _hasher(_KeyExtractor(value)) % _bucketSize;
-    HashNode* curHashNode = _buckets[hash];
-    _buckets[hash] = new HashNode(hash, curHashNode);
-    _global_list.push_front(value);
-    _buckets[hash]->it = _global_list.begin();
+    
+    _lstNode* _curNode = nullptr;
+    if (_buckets[hash].first) {
+        _curNode = new _lstNode{ value, _buckets[hash].first->prev, _buckets[hash].first };
+    }
+    else {
+        _curNode = new _lstNode{ value, _global_list._SentinelNode->prev, _global_list._SentinelNode };
+        _buckets[hash].second = _curNode;
+    }
+
+    _buckets[hash].first = _curNode;
+    _curNode->prev->next = _buckets[hash].first;
+    _curNode->next->prev = _buckets[hash].first;
+    _global_list._size++;
 }
 
 template<typename K, typename V, typename KV, bool M>
 inline void MyHashTable<K, V, KV, M>::Remove(K key) {
     int hash = _hasher(key) % _bucketSize;
-    HashNode* curHashNode = _buckets[hash];
-    HashNode* prevHashNode = nullptr;
-    while (curHashNode != nullptr) {
-        if (_KeyExtractor(*(curHashNode->it)) == key) {
-            if (prevHashNode == nullptr) _buckets[hash] = curHashNode->_next;
-            else prevHashNode->_next = curHashNode->_next;
+    _lstNode* curNode = _buckets[hash].first;
+    while (curNode) {
+        if (_KeyExtractor(curNode->data) == key) {
+            if (_buckets[hash].first == curNode && _buckets[hash].second == curNode) {
+                _buckets[hash].first = _buckets[hash].second = nullptr;
+            }
+            else if (_buckets[hash].first  == curNode) {
+                _buckets[hash].first = curNode->next;
+            }
+            else if (_buckets[hash].second == curNode) {
+                _buckets[hash].second = curNode->prev;
+            }
 
-            _global_list.erase(curHashNode->it);
-            HashNode* tmp = curHashNode->_next;
-            delete curHashNode;
-            curHashNode = tmp;
+
+            _lstNode* deletedNode = curNode;
+            curNode = deletedNode->next;
+            delete deletedNode;
+            _global_list._size--;
+
             if constexpr (!M) return;
-        } else {
-            prevHashNode = curHashNode;
-            curHashNode = curHashNode->_next;
+        } 
+        else {
+            curNode  = curNode->next;
         }
+
+        if (curNode->prev == _buckets[hash].second) break;
     }
 }
 
@@ -185,20 +200,43 @@ inline void MyHashTable<K, V, KV, M>::Rehash(unsigned _minBucketSize) {
     if (_newBucketSize <= _bucketSize) return;
 
 
-    auto _tmpBucketSize = _newBucketSize;
-    auto _tmpBuckets    = new HashNode*[_newBucketSize];
-    for (size_t i = 0; i < _tmpBucketSize; i++) _tmpBuckets[i] = nullptr;
+    DestroyBucket();
+    _bucketSize = _newBucketSize;
+    _buckets = new  std::pair<_lstNode*, _lstNode*>[_bucketSize];
+    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
 
+    auto _tmpAry = new _lstNode*[_global_list.size()];
+    int iCnt = 0;
     for (auto it = _global_list.begin(); it != _global_list.end(); it++) {
-        int hash = _hasher(_KeyExtractor(*it)) % _tmpBucketSize;
-        HashNode* curHashNode = _tmpBuckets[hash];
-        _tmpBuckets[hash] = new HashNode(hash, curHashNode);
-        _tmpBuckets[hash]->it = it;
+        _tmpAry[iCnt++] = it._ptr;
     }
 
-    DestroyBucket();
-    _buckets    = _tmpBuckets;
-    _bucketSize = _tmpBucketSize;
+    _global_list._SentinelNode->prev = _global_list._SentinelNode;
+    _global_list._SentinelNode->next = _global_list._SentinelNode;
+    for (int i = 0; i < _global_list.size(); i++) {
+        int hash = _hasher(_KeyExtractor(_tmpAry[i]->data)) % _bucketSize;
+
+        if (!_buckets[hash].first) {
+            _tmpAry[i]->next = _global_list._SentinelNode;
+            _tmpAry[i]->prev = _global_list._SentinelNode->prev;
+
+            _global_list._SentinelNode->prev->next  = _tmpAry[i];
+            _global_list._SentinelNode->prev        = _tmpAry[i];
+
+            _buckets[hash] = { _tmpAry[i], _tmpAry[i] };
+        }
+        else {
+            _tmpAry[i]->next = _buckets[hash].first;
+            _tmpAry[i]->prev = _buckets[hash].first->prev;
+
+            _buckets[hash].first->prev->next = _tmpAry[i];
+            _buckets[hash].first->prev = _tmpAry[i];
+
+            _buckets[hash].first = _tmpAry[i];
+        }
+    }
+
+    delete[] _tmpAry;
 }
 
 template<typename K, typename V, typename KV, bool M>
