@@ -35,14 +35,14 @@ STL의 정렬 연관 컨테이너를 참고해 레드블랙 트리 기반의 `Se
 
 ### 유효성 테스트
 
-Release x64에서 공개 API의 정렬 순회, 검색, 삽입·삭제, 복사·이동 및 네 어댑터의 중복 정책을 확인했습니다. 무작위 테스트는 2,000회의 삽입·삭제 후 매 단계마다 `std::set`과 크기 및 전체 원소를 비교합니다.
+Release x64에서 공개 API의 정렬 순회, 검색, 삽입·삭제, 복사·이동 및 네 어댑터의 중복 정책을 확인했습니다. 무작위 테스트는 30,000회의 삽입·탐색·삭제를 수행하며 크기와 탐색 결과를 매회, 정렬된 전체 원소를 100회마다 `std::set`과 비교합니다.
 
 | 테스트 | 확인 내용 | 결과 |
 | --- | --- | --- |
 | 고유 키·검색 | 중복 거부, 정렬 순회, 존재·부재 키 검색 | PASS |
 | 양방향 iterator | `--end()`, 역순 순회, 후위 증가 | PASS |
 | 삭제 유형 | 리프, 자식 1개, 자식 2개, 루트, 없는 키 | PASS |
-| 무작위 비교 | 2,000회 연산을 `std::set`과 비교 | PASS |
+| 무작위 비교 | 30,000회 삽입·탐색·삭제를 `std::set`과 비교 | PASS |
 | Multi 컨테이너 | MultiSet·MultiMap 중복 키 | PASS |
 | Map | 중복 거부, 키 순서 순회, 값 보존 | PASS |
 | 복사·이동 | 독립 복사, 자기 대입, 이동 후 원본 재사용 | PASS |
@@ -52,7 +52,7 @@ Release x64에서 공개 API의 정렬 순회, 검색, 삽입·삭제, 복사·�
 [PASS 1/8] Unique insertion, sorted iteration, and Find
 [PASS 2/8] Bidirectional iterator movement
 [PASS 3/8] Leaf, one-child, two-child, root, and missing-key removal
-[PASS 4/8] Randomized differential test against std::set
+[PASS 4/8] 30,000 random operations against std::set
 [PASS 5/8] MultiSet and MultiMap duplicate handling
 [PASS 6/8] Map insertion and ordered iteration
 [PASS 7/8] Copy, move, self-assignment, and moved-from reuse
@@ -117,7 +117,7 @@ for (int value : {1, 5, 30, 20, 50, 999}) {
 </details>
 
 <details>
-<summary>4. std::set 무작위 비교 테스트</summary>
+<summary>4. std::set과 30,000회 무작위 연산 비교 테스트</summary>
 
 ```cpp
 for (int operation = 0; operation < 2000; ++operation) {

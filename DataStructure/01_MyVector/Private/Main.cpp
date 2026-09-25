@@ -150,8 +150,8 @@ void test_against_std_vector() {
     MyVector<int> actual;
     std::vector<int> expected;
     std::mt19937 random(20260827);
-    for (int step = 0; step < 1000; ++step) {
-        const int operation = static_cast<int>(random() % 4);
+    for (int step = 0; step < 20000; ++step) {
+        const int operation = static_cast<int>(random() % 7);
         if (operation == 0 || expected.empty()) {
             const int value = static_cast<int>(random() % 10000);
             actual.push_back(value);
@@ -164,10 +164,21 @@ void test_against_std_vector() {
             const int value = static_cast<int>(random() % 10000);
             actual.insert(position, value);
             expected.insert(expected.begin() + position, value);
-        } else {
+        } else if (operation == 3) {
             const int position = static_cast<int>(random() % expected.size());
             actual.erase(position);
             expected.erase(expected.begin() + position);
+        } else if (operation == 4) {
+            const int capacity = static_cast<int>(random() % 512);
+            actual.reserve(capacity);
+            expected.reserve(static_cast<std::size_t>(capacity));
+        } else if (operation == 5) {
+            const int size = static_cast<int>(random() % 256);
+            actual.resize(size);
+            expected.resize(static_cast<std::size_t>(size));
+        } else {
+            actual.clear();
+            expected.clear();
         }
         require_equal(actual, expected);
     }
@@ -325,7 +336,7 @@ int run_tests() {
     runner.run("Insert and erase with std::string", test_insert_and_erase);
     runner.run("Copy and move semantics", test_copy_and_move);
     runner.run("Non-trivial object lifetime and destruction", test_non_trivial_lifetime);
-    runner.run("1,000 random operations against std::vector", test_against_std_vector);
+    runner.run("20,000 random operations against std::vector", test_against_std_vector);
     runner.run("Growth factor change (1.5 versus 2.0)", test_growth_factor_change);
     return runner.report();
 }

@@ -206,8 +206,8 @@ void test_against_std_list() {
     std::list<int> expected;
     std::mt19937 random(20260902);
 
-    for (int step = 0; step < 1000; ++step) {
-        const int operation = static_cast<int>(random() % 6);
+    for (int step = 0; step < 20000; ++step) {
+        const int operation = static_cast<int>(random() % 7);
         if (operation == 0 || expected.empty()) {
             const int value = static_cast<int>(random() % 10000);
             actual.push_back(value);
@@ -227,10 +227,13 @@ void test_against_std_list() {
             const int value = static_cast<int>(random() % 10000);
             actual.insert(iterator_at(actual, position), value);
             expected.insert(std::next(expected.begin(), position), value);
-        } else {
+        } else if (operation == 5) {
             const int position = static_cast<int>(random() % expected.size());
             actual.erase(iterator_at(actual, position));
             expected.erase(std::next(expected.begin(), position));
+        } else {
+            actual.clear();
+            expected.clear();
         }
         require_equal(actual, expected);
     }
@@ -313,7 +316,7 @@ int run_tests() {
     runner.run("Copy construction, assignment and self-assignment", test_copy_semantics);
     runner.run("Move construction, assignment and empty source", test_move_semantics);
     runner.run("Non-trivial object lifetime and destruction", test_non_trivial_lifetime);
-    runner.run("1,000 random operations against std::list", test_against_std_list);
+    runner.run("20,000 random operations against std::list", test_against_std_list);
     return runner.report();
 }
 

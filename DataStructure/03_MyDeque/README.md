@@ -46,7 +46,7 @@ Release x64에서 모든 테스트를 통과했습니다.
 [PASS 4/7] clear and storage reuse with std::string
 [PASS 5/7] copy construction, assignment and self-assignment
 [PASS 6/7] move construction and assignment
-[PASS 7/7] 5,000 random operations against std::deque
+[PASS 7/7] 50,000 random operations against std::deque
 
 7 passed, 0 failed
 ```
@@ -200,14 +200,14 @@ require(assigned.front() == "first" && assigned.back() == "second",
 </details>
 
 <details>
-<summary>7. std::deque와 5,000회 무작위 연산 비교</summary>
+<summary>7. std::deque와 50,000회 무작위 연산 비교</summary>
 
 ```cpp
 MyDeque<int, 20> actual;
 std::deque<int> expected;
 std::mt19937 random(20260905);
 
-for (int step = 0; step < 5000; ++step) {
+for (int step = 0; step < 50000; ++step) {
     const int operation = static_cast<int>(random() % 4);
     if (operation == 0 || expected.empty()) {
         const int value = static_cast<int>(random() % 100000);

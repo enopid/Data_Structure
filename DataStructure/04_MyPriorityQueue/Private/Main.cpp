@@ -7,6 +7,7 @@
 #include <limits>
 #include <queue>
 #include <random>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -129,6 +130,71 @@ void test_clear_copy_and_move() {
     require(!original.valid(old_handle), "reused slot revived a stale handle");
 }
 
+void test_randomized_against_multiset() {
+    using Queue = MyPriorityQueue<int>;
+    struct Entry {
+        Queue::FPQHandle handle;
+        int value;
+    };
+
+    Queue actual;
+    std::multiset<int> expected;
+    std::vector<Entry> active;
+    std::mt19937 random(20260925);
+    int next_value = 1;
+
+    for (int step = 0; step < 30000; ++step) {
+        const int operation = active.empty() ? 0 : static_cast<int>(random() % 4);
+        if (step > 0 && step % 1999 == 0) {
+            const auto stale = active.front().handle;
+            actual.clear();
+            expected.clear();
+            active.clear();
+            require(!actual.valid(stale), "clear preserved a stale handle");
+        } else if (operation == 0) {
+            const int value = next_value++;
+            active.push_back({actual.push(value), value});
+            expected.insert(value);
+        } else if (operation == 1) {
+            const std::size_t index = random() % active.size();
+            Entry& entry = active[index];
+            expected.erase(expected.find(entry.value));
+            entry.value = next_value++;
+            actual.update(entry.handle, entry.value);
+            expected.insert(entry.value);
+        } else if (operation == 2) {
+            const std::size_t index = random() % active.size();
+            const auto stale = active[index].handle;
+            expected.erase(expected.find(active[index].value));
+            actual.erase(stale);
+            require(!actual.valid(stale), "erase preserved a stale handle");
+            active[index] = active.back();
+            active.pop_back();
+        } else {
+            const int removed = *expected.rbegin();
+            auto entry = std::find_if(active.begin(), active.end(),
+                [removed](const Entry& value) { return value.value == removed; });
+            require(entry != active.end(), "oracle top has no matching handle");
+            const auto stale = entry->handle;
+            actual.pop();
+            expected.erase(std::prev(expected.end()));
+            require(!actual.valid(stale), "pop preserved a stale handle");
+            *entry = active.back();
+            active.pop_back();
+        }
+
+        require(actual.size() == static_cast<int>(expected.size()), "randomized size mismatch");
+        require(actual.empty() == expected.empty(), "randomized empty-state mismatch");
+        if (!expected.empty()) require(actual.top() == *expected.rbegin(), "randomized top mismatch");
+        if (step % 100 == 0) {
+            for (const Entry& entry : active) {
+                require(actual.valid(entry.handle), "live handle became invalid");
+                require(actual.get(entry.handle) == entry.value, "handle value mismatch");
+            }
+        }
+    }
+}
+
 struct BenchmarkResult {
     std::string name;
     long long average_microseconds = 0;
@@ -239,7 +305,7 @@ int main(int argc, char* argv[]) {
     std::cout << "MyPriorityQueue validity tests ("
               << test_support::build_configuration() << ")\n\n";
 
-    TestRunner runner(7);
+    TestRunner runner(8);
     runner.run("empty queue and top exception", test_empty_queue);
     runner.run("max-heap push/pop order", test_max_heap_order);
     runner.run("custom comparator", test_custom_comparator);
@@ -247,5 +313,7 @@ int main(int argc, char* argv[]) {
     runner.run("priority update in both directions", test_update);
     runner.run("erase/pop handle invalidation", test_erase_and_pop_invalidate_handles);
     runner.run("clear, copy, and move", test_clear_copy_and_move);
+    runner.run("30,000 random handle operations against std::multiset",
+               test_randomized_against_multiset);
     return runner.report();
 }

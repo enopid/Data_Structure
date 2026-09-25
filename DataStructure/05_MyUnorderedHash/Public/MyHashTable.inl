@@ -152,7 +152,9 @@ template<typename K, typename V, typename KV, bool M>
 inline void MyHashTable<K, V, KV, M>::Remove(K key) {
     int hash = _hasher(key) % _bucketSize;
     _lstNode* curNode = _buckets[hash].first;
-    while (curNode) {
+    _lstNode* endNode = _buckets[hash].second
+        ? _buckets[hash].second->next : nullptr;
+    while (curNode != endNode) {
         if (_KeyExtractor(curNode->data) == key) {
             if (_buckets[hash].first == curNode && _buckets[hash].second == curNode) {
                 _buckets[hash].first = _buckets[hash].second = nullptr;
@@ -176,7 +178,6 @@ inline void MyHashTable<K, V, KV, M>::Remove(K key) {
             curNode  = curNode->next;
         }
 
-        if (curNode->prev == _buckets[hash].second) break;
     }
 }
 

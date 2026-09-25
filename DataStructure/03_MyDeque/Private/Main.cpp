@@ -152,8 +152,9 @@ void test_against_std_deque() {
     std::deque<int> expected;
     std::mt19937 random(20260905);
 
-    for (int step = 0; step < 5000; ++step) {
-        const int operation = static_cast<int>(random() % 4);
+    for (int step = 0; step < 50000; ++step) {
+        const int operation = step > 0 && step % 997 == 0
+            ? 4 : static_cast<int>(random() % 4);
         if (operation == 0 || expected.empty()) {
             const int value = static_cast<int>(random() % 100000);
             actual.push_front(value);
@@ -165,12 +166,22 @@ void test_against_std_deque() {
         } else if (operation == 2) {
             actual.pop_front();
             expected.pop_front();
-        } else {
+        } else if (operation == 3) {
             actual.pop_back();
             expected.pop_back();
+        } else {
+            actual.clear();
+            expected.clear();
         }
-        require_equal(actual, expected);
+        require(actual.size() == static_cast<int>(expected.size()), "randomized size mismatch");
+        require(actual.empty() == expected.empty(), "randomized empty-state mismatch");
+        if (!expected.empty()) {
+            require(actual.front() == expected.front(), "randomized front mismatch");
+            require(actual.back() == expected.back(), "randomized back mismatch");
+        }
+        if (step % 100 == 0) require_equal(actual, expected);
     }
+    require_equal(actual, expected);
 }
 
 struct BenchmarkResult {
@@ -433,6 +444,6 @@ int main(int argc, char* argv[]) {
     runner.run("clear and storage reuse with std::string", test_clear_and_reuse);
     runner.run("copy construction, assignment and self-assignment", test_copy_semantics);
     runner.run("move construction and assignment", test_move_semantics);
-    runner.run("5,000 random operations against std::deque", test_against_std_deque);
+    runner.run("50,000 random operations against std::deque", test_against_std_deque);
     return runner.report();
 }

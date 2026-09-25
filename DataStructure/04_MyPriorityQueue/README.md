@@ -50,19 +50,21 @@
 | 우선순위 변경 | 값 증가·감소 후 상향·하향 이동 | PASS |
 | 삭제와 핸들 | `erase`, `pop` 이후 핸들 무효화 | PASS |
 | 초기화와 소유권 | `clear`, 슬롯 재사용, 복사 및 이동 | PASS |
+| 무작위 차등 비교 | 30,000회 `push`, `update`, `erase`, `pop`, `clear`와 핸들을 `std::multiset`과 비교 | PASS |
 
 ```text
 MyPriorityQueue validity tests (Release)
 
-[PASS 1/7] empty queue and top exception
-[PASS 2/7] max-heap push/pop order
-[PASS 3/7] custom comparator
-[PASS 4/7] handle validity and access
-[PASS 5/7] priority update in both directions
-[PASS 6/7] erase/pop handle invalidation
-[PASS 7/7] clear, copy, and move
+[PASS 1/8] empty queue and top exception
+[PASS 2/8] max-heap push/pop order
+[PASS 3/8] custom comparator
+[PASS 4/8] handle validity and access
+[PASS 5/8] priority update in both directions
+[PASS 6/8] erase/pop handle invalidation
+[PASS 7/8] clear, copy, and move
+[PASS 8/8] 30,000 random handle operations against std::multiset
 
-7 passed, 0 failed
+8 passed, 0 failed
 ```
 
 <details>
@@ -200,6 +202,29 @@ void test_clear_copy_and_move() {
     const auto new_handle = original.push(25);
     require(original.valid(new_handle), "queue cannot be reused after clear");
     require(!original.valid(old_handle), "reused slot revived a stale handle");
+}
+```
+
+</details>
+
+<details>
+<summary>8. std::multiset과 30,000회 무작위 핸들 연산 비교</summary>
+
+```cpp
+for (int step = 0; step < 30000; ++step) {
+    // push, update, erase, pop, clear 중 하나를 수행하고
+    // 동일 변경을 std::multiset과 활성 핸들 목록에 반영합니다.
+    require(actual.size() == static_cast<int>(expected.size()), "randomized size mismatch");
+    require(actual.empty() == expected.empty(), "randomized empty-state mismatch");
+    if (!expected.empty())
+        require(actual.top() == *expected.rbegin(), "randomized top mismatch");
+
+    if (step % 100 == 0) {
+        for (const Entry& entry : active) {
+            require(actual.valid(entry.handle), "live handle became invalid");
+            require(actual.get(entry.handle) == entry.value, "handle value mismatch");
+        }
+    }
 }
 ```
 

@@ -48,9 +48,11 @@
 | 복사 | 복사 생성·대입·자기 대입 | PASS |
 | 이동 | 이동 생성·대입·자기 대입·원본 재사용 | PASS |
 | 빈 원본 이동 | 빈 테이블 이동과 양쪽 재사용 | PASS |
+| Multi 버킷 전체 삭제 | 동일 키 전체 삭제 후 빈 버킷과 빈 순회 확인 | PASS |
+| 무작위 차등 비교 | 50,000회 삽입·탐색·삭제·예약을 `std::unordered_set`과 비교 | PASS |
 
 ```text
-9 passed, 0 failed
+11 passed, 0 failed
 ```
 
 <details>
@@ -232,6 +234,43 @@ void test_empty_move() {
     moved.Insert(3);
     empty.Insert(4);
     require(moved.Find(3) != nullptr && empty.Find(4) != nullptr, "empty move assignment broke reuse");
+}
+```
+
+</details>
+
+<details>
+<summary>10. MultiSet 버킷 전체 삭제 테스트 코드</summary>
+
+```cpp
+void test_multiset_bucket_becomes_empty() {
+    MyUnorderedMultiSet<int> values;
+    values.Insert(5);
+    values.Insert(5);
+    values.Remove(5);
+    require(values.Size() == 0, "removing every duplicate did not empty the table");
+    require(values.Find(5) == nullptr, "removed duplicate key is still present");
+    require(!(values.begin() != values.end()), "empty multiset iteration is invalid");
+}
+```
+
+</details>
+
+<details>
+<summary>11. std::unordered_set과 50,000회 무작위 연산 비교</summary>
+
+```cpp
+for (int step = 0; step < 50000; ++step) {
+    const int base = static_cast<int>(random() % 4096);
+    const int key = base + static_cast<int>(random() % 16) * 65536;
+    // 의도적으로 충돌하는 키로 Insert, Remove, Find, Reserve를 수행합니다.
+
+    require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
+    if (step % 100 == 0) {
+        std::unordered_set<int> observed;
+        for (auto it = actual.begin(); it != actual.end(); ++it) observed.insert(*it);
+        require(observed == expected, "randomized contents mismatch");
+    }
 }
 ```
 

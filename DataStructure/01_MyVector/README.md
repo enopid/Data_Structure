@@ -81,7 +81,7 @@
 | 삽입·삭제 | `std::string` 원소의 `insert`, `erase` | PASS |
 | 복사·이동 | 복사/이동 생성자 및 복사/이동 대입 연산자 | PASS |
 | 객체 수명 | 비단순 타입의 생성, 이동, 소멸 및 잔존 객체 수 | PASS |
-| 무작위 비교 | 1,000회의 무작위 연산 결과를 `std::vector`와 비교 | PASS |
+| 무작위 비교 | 20,000회의 삽입·삭제·용량·크기 변경 결과를 `std::vector`와 비교 | PASS |
 | Growth Factor 변경 | 증가 계수 `1.5`와 `2.0`에서 예상한 용량으로 확장되는지 비교 | PASS |
 
 ```text
@@ -217,14 +217,14 @@ void test_non_trivial_lifetime() {
 </details>
 
 <details>
-<summary>7. std::vector 무작위 비교 테스트 코드</summary>
+<summary>7. std::vector와 20,000회 무작위 연산 비교 테스트 코드</summary>
 
 ```cpp
 void test_against_std_vector() {
     MyVector<int> actual;
     std::vector<int> expected;
     std::mt19937 random(20260827);
-    for (int step = 0; step < 1000; ++step) {
+    for (int step = 0; step < 20000; ++step) {
         const int operation = static_cast<int>(random() % 4);
         if (operation == 0 || expected.empty()) {
             const int value = static_cast<int>(random() % 10000);

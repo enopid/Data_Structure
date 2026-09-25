@@ -140,6 +140,62 @@ void test_empty_move() {
     require(moved.Find(3) != nullptr && empty.Find(4) != nullptr, "empty move assignment broke reuse");
 }
 
+void test_multiset_bucket_becomes_empty() {
+    MyUnorderedMultiSet<int> values;
+    values.Insert(5);
+    values.Insert(5);
+    values.Remove(5);
+    require(values.Size() == 0, "removing every duplicate did not empty the table");
+    require(values.Find(5) == nullptr, "removed duplicate key is still present");
+    require(!(values.begin() != values.end()), "empty multiset iteration is invalid");
+}
+
+void test_randomized_against_std_unordered_set() {
+    MyUnorderedSet<int> actual;
+    std::unordered_set<int> expected;
+    std::mt19937 random(20260925);
+
+    const auto verify_all = [&] {
+        require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
+        std::unordered_set<int> observed;
+        int visited = 0;
+        for (auto it = actual.begin(); it != actual.end(); ++it) {
+            observed.insert(*it);
+            ++visited;
+        }
+        require(visited == actual.Size(), "iteration count differs from Size");
+        require(observed == expected, "randomized contents mismatch");
+    };
+
+    for (int step = 0; step < 50000; ++step) {
+        const int base = static_cast<int>(random() % 4096);
+        const int key = base + static_cast<int>(random() % 16) * 65536;
+        const int operation = static_cast<int>(random() % 4);
+        if (operation == 0) {
+            actual.Insert(key);
+            expected.insert(key);
+        } else if (operation == 1) {
+            actual.Remove(key);
+            expected.erase(key);
+        } else if (operation == 2) {
+            require((actual.Find(key) != nullptr) == (expected.find(key) != expected.end()),
+                    "randomized Find mismatch");
+        } else if (step % 997 == 0) {
+            const unsigned requested = static_cast<unsigned>(expected.size() * 2 + 8);
+            actual.Reserve(requested);
+            expected.reserve(requested);
+        } else {
+            const int missing = key + 1;
+            require((actual.Find(missing) != nullptr) == (expected.find(missing) != expected.end()),
+                    "randomized missing-key lookup mismatch");
+        }
+
+        require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
+        if (step % 100 == 0) verify_all();
+    }
+    verify_all();
+}
+
 struct LookupTimes {
     long long average_us;
     long long median_us;
@@ -351,7 +407,7 @@ int main(int argc, char* argv[]) {
         else run_benchmark(elements, repetitions);
         return 0;
     }
-    test_support::TestRunner runner(9);
+    test_support::TestRunner runner(11);
     runner.run("Set uniqueness and bucket collision", test_set_unique_and_collision);
     runner.run("MultiSet duplicate removal", test_multiset_duplicates);
     runner.run("Map access and missing key", test_map_access);
@@ -361,5 +417,8 @@ int main(int argc, char* argv[]) {
     runner.run("Copy construction, assignment, and self-assignment", test_copy);
     runner.run("Move construction, assignment, and reuse", test_move_and_reuse);
     runner.run("Empty move construction and assignment", test_empty_move);
+    runner.run("MultiSet removal that empties a bucket", test_multiset_bucket_becomes_empty);
+    runner.run("50,000 random operations against std::unordered_set",
+               test_randomized_against_std_unordered_set);
     return runner.report();
 }

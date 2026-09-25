@@ -68,7 +68,7 @@ _NODISCARD iterator end() noexcept {
 | 복사 | 복사 생성, 복사 대입, 자기 대입 | PASS |
 | 이동 | 이동 생성, 이동 대입, 빈 원본 이동 | PASS |
 | 객체 수명 | 비단순 타입의 복사, 삭제 및 잔존 객체 수 | PASS |
-| 무작위 비교 | 1,000회의 무작위 연산 결과를 `std::list`와 비교 | PASS |
+| 무작위 비교 | 20,000회의 양끝·임의 위치 삽입·삭제 결과를 `std::list`와 비교 | PASS |
 
 ```text
 8 passed, 0 failed
@@ -261,7 +261,7 @@ void test_non_trivial_lifetime() {
 </details>
 
 <details>
-<summary>8. std::list 무작위 비교 테스트 코드</summary>
+<summary>8. std::list와 20,000회 무작위 연산 비교 테스트 코드</summary>
 
 ```cpp
 void test_against_std_list() {
@@ -269,7 +269,7 @@ void test_against_std_list() {
     std::list<int> expected;
     std::mt19937 random(20260902);
 
-    for (int step = 0; step < 1000; ++step) {
+    for (int step = 0; step < 20000; ++step) {
         const int operation = static_cast<int>(random() % 6);
         if (operation == 0 || expected.empty()) {
             const int value = static_cast<int>(random() % 10000);

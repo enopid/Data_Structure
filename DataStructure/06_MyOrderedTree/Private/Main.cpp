@@ -74,21 +74,28 @@ void test_randomized_against_std_set() {
     MyOrderedSet<int> actual;
     std::set<int> expected;
     std::mt19937 random(20260924);
-    std::uniform_int_distribution<int> value_distribution(0, 127);
-    std::bernoulli_distribution insert_operation(0.6);
-    for (int operation = 0; operation < 2000; ++operation) {
+    std::uniform_int_distribution<int> value_distribution(-10000, 10000);
+    for (int operation = 0; operation < 30000; ++operation) {
         const int value = value_distribution(random);
-        if (insert_operation(random)) {
+        const int action = static_cast<int>(random() % 3);
+        if (action == 0) {
             actual.Insert(value);
             expected.insert(value);
-        } else {
+        } else if (action == 1) {
             actual.Remove(value);
             expected.erase(value);
+        } else {
+            require((actual.Find(value) != actual.end()) == (expected.find(value) != expected.end()),
+                    "randomized Find mismatch");
         }
         require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
-        require(collect_keys(actual) == std::vector<int>(expected.begin(), expected.end()),
-                "randomized contents mismatch");
+        if (operation % 100 == 0) {
+            require(collect_keys(actual) == std::vector<int>(expected.begin(), expected.end()),
+                    "randomized contents mismatch");
+        }
     }
+    require(collect_keys(actual) == std::vector<int>(expected.begin(), expected.end()),
+            "final randomized contents mismatch");
 }
 
 void test_multi_containers() {
@@ -507,7 +514,7 @@ int main(int argc, char* argv[]) {
     runner.run("Unique insertion, sorted iteration, and Find", test_unique_insertion_and_find);
     runner.run("Bidirectional iterator movement", test_bidirectional_iteration);
     runner.run("Leaf, one-child, two-child, root, and missing-key removal", test_removal_cases);
-    runner.run("Randomized differential test against std::set", test_randomized_against_std_set);
+    runner.run("30,000 random operations against std::set", test_randomized_against_std_set);
     runner.run("MultiSet and MultiMap duplicate handling", test_multi_containers);
     runner.run("Map insertion and ordered iteration", test_map_iteration);
     runner.run("Copy, move, self-assignment, and moved-from reuse", test_copy_and_move);
