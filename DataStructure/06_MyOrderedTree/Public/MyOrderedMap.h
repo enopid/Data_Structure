@@ -11,8 +11,8 @@ class MyOrderedMap : public MyRedBlackTree<_Key_Type, _Value_Type,
     using _Tree = MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, false>;
 public:
     MyOrderedMap();
-    _Key_Type _KeyExtractor(const _Key_Value_Type& _keyvalue) const;
-    _Value_Type _ValueExtractor(const _Key_Value_Type& _keyvalue) const;
+    _Key_Type _key_extractor(const _Key_Value_Type& _keyvalue) const;
+    _Value_Type _value_extractor(const _Key_Value_Type& _keyvalue) const;
     _Value_Type& at(const _Key_Type key);
     _Value_Type& operator[](const _Key_Type key);
 };

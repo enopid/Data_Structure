@@ -1,8 +1,6 @@
 #include "MyRedBlackTree.h"
 #pragma once
 
-
-
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
 MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::MyRedBlackTree()
 {
@@ -17,19 +15,19 @@ MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::MyRed
 	comp	= other.comp;
 	iSize	= other.iSize;
 	if (other.pRootNode) pRootNode = new FTreeNode;
-	CopyNode(other.pRootNode, other.pNILNode, pRootNode);
+	copy_node(other.pRootNode, other.pNILNode, pRootNode);
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
 MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>& MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::operator=(const MyRedBlackTree& other)
 {
 	if (&other == this) return *this;
-	Clear();
+	clear();
 	comp	= other.comp;
 	iSize	= other.iSize;
 
 	if(other.pRootNode) pRootNode = new FTreeNode;
-	CopyNode(other.pRootNode, other.pNILNode, pRootNode);
+	copy_node(other.pRootNode, other.pNILNode, pRootNode);
 	return *this;
 }
 
@@ -51,7 +49,7 @@ template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typ
 MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>& MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::operator=(MyRedBlackTree&& other)
 {
 	if (&other == this) return *this;
-	Clear();
+	clear();
 
 	delete pNILNode;
 	pRootNode	= other.pRootNode;
@@ -70,14 +68,14 @@ MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>& MyRed
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
 MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::~MyRedBlackTree()
 {
-	Clear();
+	clear();
 	delete pNILNode;
 	pNILNode = nullptr;
 }
 
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::Clear()
+void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::clear()
 {
 	auto DeleteNode = [&](auto&& self, FTreeNode* pCurNode)->void {
 		if (!pCurNode || pCurNode == pNILNode) return;
@@ -94,23 +92,23 @@ void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::iterator<false> MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::Find(_Key_Type key)
+typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::iterator<false> MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::find(_Key_Type key)
 {
-	return iterator<false>(FindNode(key), this);
+	return iterator<false>(find_node(key), this);
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::FTreeNode* MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::FindNode(_Key_Type key)
+typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::FTreeNode* MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::find_node(_Key_Type key)
 {
 	auto pNode = pRootNode;
 	if (!pNode) return nullptr;
 	while (true) {
 		if (pNode == pNILNode) return nullptr;
 
-		if		(comp(_KeyExtractor(pNode->value), key)) {
+		if		(comp(_key_extractor(pNode->value), key)) {
 			pNode = pNode->pRightNode;
 		}
-		else if (comp(key, _KeyExtractor(pNode->value))) {
+		else if (comp(key, _key_extractor(pNode->value))) {
 			pNode = pNode->pLeftNode;
 		}
 		else {
@@ -122,7 +120,7 @@ typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMult
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::FTreeNode* MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::CreateNewNode(bool IsRed, _Key_Value_Type value)
+typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::FTreeNode* MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::create_new_node(bool IsRed, _Key_Value_Type value)
 {
 	FTreeNode* pNode = new FTreeNode;
 	pNode->value = value;
@@ -133,7 +131,7 @@ typename MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMult
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::CopyNode(FTreeNode* pSrc, FTreeNode* pSrcNIL, FTreeNode* pDst)
+void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::copy_node(FTreeNode* pSrc, FTreeNode* pSrcNIL, FTreeNode* pDst)
 {
 	if (!pSrc) return;
 	pDst->value		= pSrc->value;
@@ -142,7 +140,7 @@ void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::
 	if (pSrc->pLeftNode != pSrcNIL) {
 		pDst->pLeftNode = new FTreeNode;
 		pDst->pLeftNode->pParentNode = pDst;
-		CopyNode(pSrc->pLeftNode, pSrcNIL, pDst->pLeftNode);
+		copy_node(pSrc->pLeftNode, pSrcNIL, pDst->pLeftNode);
 	}
 	else {
 		pDst->pLeftNode = pNILNode;
@@ -151,7 +149,7 @@ void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::
 	if (pSrc->pRightNode != pSrcNIL) {
 		pDst->pRightNode = new FTreeNode;
 		pDst->pRightNode->pParentNode = pDst;
-		CopyNode(pSrc->pRightNode, pSrcNIL, pDst->pRightNode);
+		copy_node(pSrc->pRightNode, pSrcNIL, pDst->pRightNode);
 	}
 	else {
 		pDst->pRightNode = pNILNode;
@@ -160,7 +158,7 @@ void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::RotateRight(FTreeNode* pNode)
+void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::rotate_right(FTreeNode* pNode)
 {
 	if (pNode->pLeftNode == pNILNode) return;
 	auto _pLRNode = pNode->pLeftNode->pRightNode;
@@ -190,7 +188,7 @@ void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::RotateLeft(FTreeNode* pNode)
+inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::rotate_left(FTreeNode* pNode)
 {
 	if (pNode->pRightNode == pNILNode) return;
 	auto _pRLNode = pNode->pRightNode->pLeftNode;
@@ -220,12 +218,12 @@ inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::Insert(_Key_Value_Type value)
+inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::insert(_Key_Value_Type value)
 {
-	FTreeNode* pNode = CreateNewNode(true, value);
-	if (InsertNode(pRootNode, pNode)) {
+	FTreeNode* pNode = create_new_node(true, value);
+	if (insert_node(pRootNode, pNode)) {
 		iSize++;
-		RebuildTree_Insert(pNode);
+		rebuild_tree_insert(pNode);
 	}
 	else {
 		delete pNode;
@@ -233,27 +231,27 @@ inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::Remove(_Key_Type key)
+inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::remove(_Key_Type key)
 {
-	FTreeNode* pNode = FindNode(key);
+	FTreeNode* pNode = find_node(key);
 
 	if (!pNode) return;
 	FTreeNode* pSuccessorNode;
-	if (RemoveNode(&pSuccessorNode, pNode)) {
-		RebuildTree_Remove(pSuccessorNode);
+	if (remove_node(&pSuccessorNode, pNode)) {
+		rebuild_tree_remove(pSuccessorNode);
 	}
 	iSize--;
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-inline bool MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::InsertNode(FTreeNode* pCurNode, FTreeNode* pNewNode)
+inline bool MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::insert_node(FTreeNode* pCurNode, FTreeNode* pNewNode)
 {
 	if (!pCurNode) {
 		pRootNode = pNewNode;
 		return true;
 	}
 	
-	if (comp(_KeyExtractor(pCurNode->value), _KeyExtractor(pNewNode->value)))
+	if (comp(_key_extractor(pCurNode->value), _key_extractor(pNewNode->value)))
 	{
 		if (pCurNode->pRightNode == pNILNode) {
 			pCurNode->pRightNode	= pNewNode;
@@ -261,13 +259,13 @@ inline bool MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 			return true;
 		}
 		else {
-			return InsertNode(pCurNode->pRightNode, pNewNode);
+			return insert_node(pCurNode->pRightNode, pNewNode);
 		}
 	}
 	else
 	{
 		if constexpr (!IsMulti) {
-			if (!comp(_KeyExtractor(pNewNode->value), _KeyExtractor(pCurNode->value))) 
+			if (!comp(_key_extractor(pNewNode->value), _key_extractor(pCurNode->value)))
 				return false;
 		}
 
@@ -277,13 +275,13 @@ inline bool MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 			return true;
 		}
 		else {
-			return InsertNode(pCurNode->pLeftNode, pNewNode);
+			return insert_node(pCurNode->pLeftNode, pNewNode);
 		}
 	}
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-bool MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::RemoveNode(FTreeNode** ppSuccessorNode, FTreeNode* pNode)
+bool MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::remove_node(FTreeNode** ppSuccessorNode, FTreeNode* pNode)
 {
 	FTreeNode* pRemoveNode = nullptr;
 	if (pNode->pLeftNode == pNILNode || pNode->pRightNode == pNILNode) {
@@ -330,7 +328,7 @@ bool MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::RebuildTree_Insert(FTreeNode* pNode)
+inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::rebuild_tree_insert(FTreeNode* pNode)
 {
 	if (!pNode->pParentNode) {
 		pRootNode->SetBlack();
@@ -348,22 +346,22 @@ inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 			pGPNode	->SetRed();
 			pNode = pGPNode;
 		}
-		else if (bIsRight != bIsParentRight){ //꺽인 형태
-			(bIsRight) ? RotateLeft(pPNode) : RotateRight(pPNode);
+		else if (bIsRight != bIsParentRight) { // Convert a zig-zag case into a straight-line case.
+			(bIsRight) ? rotate_left(pPNode) : rotate_right(pPNode);
 			pNode = pPNode;
 		}
 		else {
 			pPNode ->SetBlack();
 			pGPNode->SetRed();
 
-			(bIsParentRight) ? RotateLeft(pGPNode) : RotateRight(pGPNode);
+			(bIsParentRight) ? rotate_left(pGPNode) : rotate_right(pGPNode);
 		}
 	}
 	pRootNode->SetBlack();
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, typename Compare, bool IsMulti>
-inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::RebuildTree_Remove(FTreeNode* pNode)
+inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsMulti>::rebuild_tree_remove(FTreeNode* pNode)
 {
 	FTreeNode* pSNode = nullptr;
 	FTreeNode* pPNode = nullptr;
@@ -377,8 +375,8 @@ inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 			pPNode->SetRed();
 			pSNode->SetBlack();
 
-			if (bIsRight)	RotateRight	(pPNode);
-			else			RotateLeft	(pPNode);
+			if (bIsRight)	rotate_right	(pPNode);
+			else			rotate_left	(pPNode);
 			
 			//now snode is black
 		}
@@ -399,8 +397,8 @@ inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 				if (bIsRight)	pSNode->pLeftNode ->SetBlack();
 				else			pSNode->pRightNode->SetBlack();
 
-				if (bIsRight)	RotateRight(pPNode);
-				else			RotateLeft(pPNode);
+				if (bIsRight)	rotate_right(pPNode);
+				else			rotate_left(pPNode);
 				pNode = pRootNode;
 			}
 			//2-3. curve red
@@ -411,7 +409,7 @@ inline void MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, IsM
 				else			pSNode->pLeftNode->SetBlack();
 				pSNode->SetRed();
 
-				(bIsSRRed ? RotateLeft(pSNode) : RotateRight(pSNode));
+				(bIsSRRed ? rotate_left(pSNode) : rotate_right(pSNode));
 			}
 			//bb
 			//rb

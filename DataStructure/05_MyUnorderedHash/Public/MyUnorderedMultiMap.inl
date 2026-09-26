@@ -7,11 +7,11 @@ template<typename K, typename V>
 inline MyUnorderedMultiMap<K, V>::MyUnorderedMultiMap(unsigned int max_size) : _HashTable(max_size) {}
 
 template<typename K, typename V>
-inline K MyUnorderedMultiMap<K, V>::_KeyExtractor(const _Key_Value_Type& _keyvalue) const {
+inline K MyUnorderedMultiMap<K, V>::_key_extractor(const _Key_Value_Type& _keyvalue) const {
     return _keyvalue.first;
 }
 
 template<typename K, typename V>
-inline V MyUnorderedMultiMap<K, V>::_ValueExtractor(const _Key_Value_Type& _keyvalue) const {
+inline V MyUnorderedMultiMap<K, V>::_value_extractor(const _Key_Value_Type& _keyvalue) const {
     return _keyvalue.second;
 }

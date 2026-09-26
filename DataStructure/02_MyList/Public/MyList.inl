@@ -7,17 +7,17 @@ MyLinkedList<T>::Node::~Node() {
 
 template<typename T>
 template<bool IsConst>
-MyLinkedList<T>::iterator<IsConst>::iterator() : _ptr(nullptr) {}
+MyLinkedList<T>::iterator<IsConst>::iterator() : pNode(nullptr) {}
 
 template<typename T>
 template<bool IsConst>
-MyLinkedList<T>::iterator<IsConst>::iterator(Node* ptr) : _ptr(ptr) {}
+MyLinkedList<T>::iterator<IsConst>::iterator(Node* ptr) : pNode(ptr) {}
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template iterator<IsConst>& MyLinkedList<T>::iterator<IsConst>::operator=(const iterator& other) {
 	if (this != &other) {
-		this->_ptr = other._ptr;
+		this->pNode = other.pNode;
 	}
 	return *this;
 }
@@ -25,112 +25,112 @@ typename MyLinkedList<T>::template iterator<IsConst>& MyLinkedList<T>::iterator<
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template iterator<IsConst>& MyLinkedList<T>::iterator<IsConst>::operator++() {
-	_ptr = _ptr->next;
+	pNode = pNode->next;
 	return *this;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template iterator<IsConst> MyLinkedList<T>::iterator<IsConst>::operator++(int) {
-	iterator tmp(_ptr);
-	_ptr = _ptr->next;
+	iterator tmp(pNode);
+	pNode = pNode->next;
 	return tmp;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template iterator<IsConst>& MyLinkedList<T>::iterator<IsConst>::operator--() {
-	_ptr = _ptr->prev;
+	pNode = pNode->prev;
 	return *this;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template iterator<IsConst> MyLinkedList<T>::iterator<IsConst>::operator--(int) {
-	iterator tmp(_ptr);
-	_ptr = _ptr->prev;
+	iterator tmp(pNode);
+	pNode = pNode->prev;
 	return tmp;
 }
 
 template<typename T>
 template<bool IsConst>
 bool MyLinkedList<T>::iterator<IsConst>::operator!=(const iterator& other) const {
-	return other._ptr != _ptr;
+	return other.pNode != pNode;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template iterator<IsConst>::reference MyLinkedList<T>::iterator<IsConst>::operator*() const {
-	return _ptr->data;
+	return pNode->data;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template iterator<IsConst>::pointer MyLinkedList<T>::iterator<IsConst>::operator->() const {
-	return static_cast<pointer>(&(_ptr->data));
+	return static_cast<pointer>(&(pNode->data));
 }
 
 template<typename T>
 template<bool IsConst>
-MyLinkedList<T>::reverse_iterator<IsConst>::reverse_iterator(Node* ptr) : _iter(iterator<IsConst>(ptr)) {}
+MyLinkedList<T>::reverse_iterator<IsConst>::reverse_iterator(Node* ptr) : iter(iterator<IsConst>(ptr)) {}
 
 template<typename T>
 template<bool IsConst>
-MyLinkedList<T>::reverse_iterator<IsConst>::reverse_iterator(iterator<IsConst> _iter) : _iter(_iter) {}
+MyLinkedList<T>::reverse_iterator<IsConst>::reverse_iterator(iterator<IsConst> _iter) : iter(_iter) {}
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template reverse_iterator<IsConst>& MyLinkedList<T>::reverse_iterator<IsConst>::operator++() {
-	--_iter;
+	--iter;
 	return *this;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template reverse_iterator<IsConst> MyLinkedList<T>::reverse_iterator<IsConst>::operator++(int) {
-	reverse_iterator tmp(_iter);
-	--_iter;
+	reverse_iterator tmp(iter);
+	--iter;
 	return tmp;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template reverse_iterator<IsConst>& MyLinkedList<T>::reverse_iterator<IsConst>::operator--() {
-	++_iter;
+	++iter;
 	return *this;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template reverse_iterator<IsConst> MyLinkedList<T>::reverse_iterator<IsConst>::operator--(int) {
-	reverse_iterator tmp(_iter);
-	++_iter;
+	reverse_iterator tmp(iter);
+	++iter;
 	return tmp;
 }
 
 template<typename T>
 template<bool IsConst>
 bool MyLinkedList<T>::reverse_iterator<IsConst>::operator!=(const reverse_iterator& other) const {
-	return other._iter != _iter;
+	return other.iter != iter;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template reverse_iterator<IsConst>::reference MyLinkedList<T>::reverse_iterator<IsConst>::operator*() {
-	return *_iter;
+	return *iter;
 }
 
 template<typename T>
 template<bool IsConst>
 typename MyLinkedList<T>::template reverse_iterator<IsConst>::pointer MyLinkedList<T>::reverse_iterator<IsConst>::operator->() {
-	return &(*_iter);
+	return &(*iter);
 }
 
 template<typename T>
 MyLinkedList<T>::MyLinkedList() {
-	_SentinelNode		= new Node;
-	_SentinelNode->prev = _SentinelNode;
-	_SentinelNode->next = _SentinelNode;
+	pSentinelNode		= new Node;
+	pSentinelNode->prev = pSentinelNode;
+	pSentinelNode->next = pSentinelNode;
 }
 
 template<typename T>
@@ -163,15 +163,15 @@ inline MyLinkedList<T>& MyLinkedList<T>::operator=(const MyLinkedList<T>& other)
 {
 	if (this == &other) return *this;
 
-	auto curNode = _SentinelNode->next;
-	while (curNode != _SentinelNode) {
+	auto curNode = pSentinelNode->next;
+	while (curNode != pSentinelNode) {
 		auto tmpNode = curNode;
 		curNode = curNode->next;
 		delete tmpNode;
 	}
-	_SentinelNode->prev = _SentinelNode;
-	_SentinelNode->next = _SentinelNode;
-	_size = 0;
+	pSentinelNode->prev = pSentinelNode;
+	pSentinelNode->next = pSentinelNode;
+	iSize = 0;
 
 	for (auto it = other.cbegin(); it != other.cend(); ++it) {
 		push_back(*it);
@@ -183,18 +183,18 @@ inline MyLinkedList<T>& MyLinkedList<T>::operator=(const MyLinkedList<T>& other)
 template<typename T>
 inline MyLinkedList<T>::MyLinkedList(MyLinkedList<T>&& other) : MyLinkedList()
 {
-	if (other._size == 0) return;
+	if (other.iSize == 0) return;
 
-	_size							= other._size;
-	_SentinelNode->next				= other._SentinelNode->next;
-	_SentinelNode->prev				= other._SentinelNode->prev;
-	other._SentinelNode->next->prev = _SentinelNode;
-	other._SentinelNode->prev->next = _SentinelNode;
+	iSize							= other.iSize;
+	pSentinelNode->next				= other.pSentinelNode->next;
+	pSentinelNode->prev				= other.pSentinelNode->prev;
+	other.pSentinelNode->next->prev = pSentinelNode;
+	other.pSentinelNode->prev->next = pSentinelNode;
 
 
-	other._size						= 0;
-	other._SentinelNode->next		= other._SentinelNode;
-	other._SentinelNode->prev		= other._SentinelNode;
+	other.iSize						= 0;
+	other.pSentinelNode->next		= other.pSentinelNode;
+	other.pSentinelNode->prev		= other.pSentinelNode;
 }
 
 template<typename T>
@@ -202,27 +202,27 @@ inline MyLinkedList<T>& MyLinkedList<T>::operator=(MyLinkedList<T>&& other) noex
 {
 	if (this == &other) return *this;
 
-	auto curNode = _SentinelNode->next;
-	while (curNode != _SentinelNode) {
+	auto curNode = pSentinelNode->next;
+	while (curNode != pSentinelNode) {
 		auto tmpNode = curNode;
 		curNode = curNode->next;
 		delete tmpNode;
 	}
-	_SentinelNode->next = _SentinelNode;
-	_SentinelNode->prev = _SentinelNode;
-	_size = 0;
-	if (other._size == 0) return *this;
+	pSentinelNode->next = pSentinelNode;
+	pSentinelNode->prev = pSentinelNode;
+	iSize = 0;
+	if (other.iSize == 0) return *this;
 
-	_size							= other._size;
-	_SentinelNode->next				= other._SentinelNode->next;
-	_SentinelNode->prev				= other._SentinelNode->prev;
-	other._SentinelNode->next->prev = _SentinelNode;
-	other._SentinelNode->prev->next = _SentinelNode;
+	iSize							= other.iSize;
+	pSentinelNode->next				= other.pSentinelNode->next;
+	pSentinelNode->prev				= other.pSentinelNode->prev;
+	other.pSentinelNode->next->prev = pSentinelNode;
+	other.pSentinelNode->prev->next = pSentinelNode;
 
 
-	other._size						= 0;
-	other._SentinelNode->next		= other._SentinelNode;
-	other._SentinelNode->prev		= other._SentinelNode;
+	other.iSize						= 0;
+	other.pSentinelNode->next		= other.pSentinelNode;
+	other.pSentinelNode->prev		= other.pSentinelNode;
 
 	return *this;
 }
@@ -230,53 +230,53 @@ inline MyLinkedList<T>& MyLinkedList<T>::operator=(MyLinkedList<T>&& other) noex
 template<typename T>
 inline MyLinkedList<T>::~MyLinkedList()
 {
-	_size = 0;
-	auto curNode = _SentinelNode->next;
-	while (curNode != _SentinelNode) {
-		auto tmpNode = curNode;
-		curNode = curNode->next;
-		delete tmpNode;
+	iSize = 0;
+	auto _pCurNode= pSentinelNode->next;
+	while (_pCurNode != pSentinelNode) {
+		auto _pTmpNode = _pCurNode;
+		_pCurNode = _pCurNode->next;
+		delete _pTmpNode;
 	}
-	delete _SentinelNode;
+	delete pSentinelNode;
 }
 
 template<typename T>
 void MyLinkedList<T>::push_front(const T& data) {
-	Node* node = new Node{data, _SentinelNode, _SentinelNode->next};
-	(_SentinelNode->next)->prev = node;
-	_SentinelNode->next = node;
-	_size++;
+	Node* node = new Node{data, pSentinelNode, pSentinelNode->next};
+	(pSentinelNode->next)->prev = node;
+	pSentinelNode->next = node;
+	iSize++;
 }
 
 template<typename T>
 void MyLinkedList<T>::push_back(const T& data) {
-	Node* node = new Node{data, _SentinelNode->prev, _SentinelNode};
-	(_SentinelNode->prev)->next = node;
-	_SentinelNode->prev = node;
-	_size++;
+	Node* node = new Node{data, pSentinelNode->prev, pSentinelNode};
+	(pSentinelNode->prev)->next = node;
+	pSentinelNode->prev = node;
+	iSize++;
 }
 
 template<typename T>
 void MyLinkedList<T>::pop_front() {
-	if (_size <= 0) return;
-	Node* deletedNode = (_SentinelNode->next);
-	delete deletedNode;
-	_size--;
+	if (iSize <= 0) return;
+	Node* _pDeletedNode = (pSentinelNode->next);
+	delete _pDeletedNode;
+	iSize--;
 }
 
 template<typename T>
 void MyLinkedList<T>::pop_back() {
-	if (_size <= 0) return;
-	Node* deletedNode = (_SentinelNode->prev);
-	delete deletedNode;
-	_size--;
+	if (iSize <= 0) return;
+	Node* _pDeletedNode = (pSentinelNode->prev);
+	delete _pDeletedNode;
+	iSize--;
 }
 
 template<typename T>
 void MyLinkedList<T>::clear() {
-	_size = 0;
-	Node* curNode = (_SentinelNode->next);
-	while (curNode != _SentinelNode) {
+	iSize = 0;
+	Node* curNode = (pSentinelNode->next);
+	while (curNode != pSentinelNode) {
 		curNode = (curNode->next);
 		delete (curNode->prev);
 	}
@@ -285,96 +285,96 @@ void MyLinkedList<T>::clear() {
 template<typename T>
 template<bool isconst>
 void MyLinkedList<T>::insert(const iterator<isconst>& it, T data) {
-	Node* node = new Node{data, (it._ptr)->prev, (it._ptr)};
-	((it._ptr)->prev)->next = node;
-	(it._ptr)->prev = node;
-	_size++;
+	Node* _pNode = new Node{data, (it.pNode)->prev, (it.pNode)};
+	((it.pNode)->prev)->next = _pNode;
+	(it.pNode)->prev = _pNode;
+	iSize++;
 }
 
 template<typename T>
 template<bool isconst>
 void MyLinkedList<T>::erase(const iterator<isconst>& it) {
-	if (it._ptr == _SentinelNode) return;
-	delete (it._ptr);
-	_size--;
+	if (it.pNode == pSentinelNode) return;
+	delete (it.pNode);
+	iSize--;
 }
 
 template<typename T>
 T& MyLinkedList<T>::front() {
-	return (_SentinelNode->next)->data;
+	return (pSentinelNode->next)->data;
 }
 
 template<typename T>
 T& MyLinkedList<T>::back() {
-	return (_SentinelNode->prev)->data;
+	return (pSentinelNode->prev)->data;
 }
 
 template<typename T>
 const T& MyLinkedList<T>::front() const {
-	return (_SentinelNode->next)->data;
+	return (pSentinelNode->next)->data;
 }
 
 template<typename T>
 const T& MyLinkedList<T>::back() const {
-	return (_SentinelNode->prev)->data;
+	return (pSentinelNode->prev)->data;
 }
 
 template<typename T>
 bool MyLinkedList<T>::empty() const {
-	return (_size == 0) ? true : false;
+	return (iSize == 0) ? true : false;
 }
 
 template<typename T>
 int MyLinkedList<T>::size() const {
-	return _size;
+	return iSize;
 }
 
 template<typename T>
 typename MyLinkedList<T>::template iterator<false> MyLinkedList<T>::begin() {
-	return iterator<false>(_SentinelNode->next);
+	return iterator<false>(pSentinelNode->next);
 }
 
 template<typename T>
 typename MyLinkedList<T>::template iterator<false> MyLinkedList<T>::end() {
-	return iterator<false>(_SentinelNode);
+	return iterator<false>(pSentinelNode);
 }
 
 template<typename T>
 typename MyLinkedList<T>::template iterator<true> MyLinkedList<T>::cbegin() const {
-	return iterator<true>(_SentinelNode->next);
+	return iterator<true>(pSentinelNode->next);
 }
 
 template<typename T>
 typename MyLinkedList<T>::template iterator<true> MyLinkedList<T>::cend() const {
-	return iterator<true>(_SentinelNode);
+	return iterator<true>(pSentinelNode);
 }
 
 template<typename T>
 typename MyLinkedList<T>::template reverse_iterator<false> MyLinkedList<T>::rbegin() {
-	return reverse_iterator<false>(_SentinelNode->prev);
+	return reverse_iterator<false>(pSentinelNode->prev);
 }
 
 template<typename T>
 typename MyLinkedList<T>::template reverse_iterator<false> MyLinkedList<T>::rend() {
-	return reverse_iterator<false>(_SentinelNode);
+	return reverse_iterator<false>(pSentinelNode);
 }
 
 template<typename T>
 typename MyLinkedList<T>::template reverse_iterator<true> MyLinkedList<T>::crbegin() const {
-	return reverse_iterator<true>(_SentinelNode->prev);
+	return reverse_iterator<true>(pSentinelNode->prev);
 }
 
 template<typename T>
 typename MyLinkedList<T>::template reverse_iterator<true> MyLinkedList<T>::crend() const {
-	return reverse_iterator<true>(_SentinelNode);
+	return reverse_iterator<true>(pSentinelNode);
 }
 
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const MyLinkedList<T>& mylinkedlist) {
-	typename MyLinkedList<T>::Node* ptr = mylinkedlist._SentinelNode->next;
-	while (ptr != mylinkedlist._SentinelNode) {
-		os << ptr->data << " ";
-		ptr = ptr->next;
+	typename MyLinkedList<T>::Node* _pNode = mylinkedlist.pSentinelNode->next;
+	while (_pNode != mylinkedlist.pSentinelNode) {
+		os << _pNode->data << " ";
+		_pNode = _pNode->next;
 	}
 	return os;
 }

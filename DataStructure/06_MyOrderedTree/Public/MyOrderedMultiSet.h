@@ -8,8 +8,8 @@ class MyOrderedMultiSet : public MyRedBlackTree<_Key_Type, _Key_Type, _Key_Type,
     using _Tree = MyRedBlackTree<_Key_Type, _Key_Type, _Key_Value_Type, Compare, true>;
 public:
     MyOrderedMultiSet();
-    _Key_Type _KeyExtractor(const _Key_Value_Type& _keyvalue) const;
-    _Key_Type _ValueExtractor(const _Key_Value_Type& _keyvalue) const;
+    _Key_Type _key_extractor(const _Key_Value_Type& _keyvalue) const;
+    _Key_Type _value_extractor(const _Key_Value_Type& _keyvalue) const;
 };
 
 #include "MyOrderedMultiSet.inl"

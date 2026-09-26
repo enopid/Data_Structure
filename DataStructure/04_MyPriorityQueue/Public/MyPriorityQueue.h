@@ -45,13 +45,13 @@ public:
     void        update  (FPQHandle handle, const T& value);
     void        erase   (FPQHandle handle);
 private:
-    void SwapNode(int iParentIdx, int iCurIdx);
+    void swap_node(int iParentIdx, int iCurIdx);
 private:
-    MyVector<FPQNode>       _nodes;
-    MyVector<FPQHandleSlot> _handles;
-    MyVector<uint32_t>      _freeIDs;
+    MyVector<FPQNode>       vecNodes;
+    MyVector<FPQHandleSlot> vecHandles;
+    MyVector<uint32_t>      vecFreeIDs;
 
-    Comp _comp;
+    Comp comp;
 
     // MyContainer을(를) 통해 상속됨
     void print_info() override;

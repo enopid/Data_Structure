@@ -21,34 +21,34 @@ using test_support::require;
 
 void test_set_unique_and_collision() {
     MyUnorderedSet<int> values;
-    values.Insert(1);
-    values.Insert(9); // Both keys initially map to the same bucket.
-    values.Insert(1);
-    require(values.Size() == 2, "set accepted a duplicate key");
-    require(values.Find(1) != nullptr && values.Find(9) != nullptr, "set lookup failed");
-    values.Remove(1);
-    require(values.Find(1) == nullptr && values.Find(9) != nullptr, "collision removal failed");
-    require(values.Size() == 1, "set size after removal is wrong");
+    values.insert(1);
+    values.insert(9); // Both keys initially map to the same bucket.
+    values.insert(1);
+    require(values.size() == 2, "set accepted a duplicate key");
+    require(values.find(1) != nullptr && values.find(9) != nullptr, "set lookup failed");
+    values.remove(1);
+    require(values.find(1) == nullptr && values.find(9) != nullptr, "collision removal failed");
+    require(values.size() == 1, "set size after removal is wrong");
 }
 
 void test_multiset_duplicates() {
     MyUnorderedMultiSet<int> values;
-    values.Insert(5);
-    values.Insert(5);
-    values.Insert(13);
-    require(values.Size() == 3, "multiset rejected a duplicate");
-    values.Remove(5);
-    require(values.Size() == 1 && values.Find(5) == nullptr, "multiset did not remove all matches");
-    require(values.Find(13) != nullptr, "multiset removed a colliding key");
+    values.insert(5);
+    values.insert(5);
+    values.insert(13);
+    require(values.size() == 3, "multiset rejected a duplicate");
+    values.remove(5);
+    require(values.size() == 1 && values.find(5) == nullptr, "multiset did not remove all matches");
+    require(values.find(13) != nullptr, "multiset removed a colliding key");
 }
 
 void test_map_access() {
     MyUnorderedMap<int, std::string> values;
-    values.Insert({2, "two"});
-    values.Insert({2, "duplicate"});
-    require(values.Size() == 1 && values.at(2) == "two", "map duplicate changed the value");
+    values.insert({2, "two"});
+    values.insert({2, "duplicate"});
+    require(values.size() == 1 && values.at(2) == "two", "map duplicate changed the value");
     values[3] = "three";
-    require(values.Size() == 2 && values.at(3) == "three", "map subscript failed");
+    require(values.size() == 2 && values.at(3) == "three", "map subscript failed");
     bool threw = false;
     try { values.at(99); } catch (const std::runtime_error&) { threw = true; }
     require(threw, "map at did not reject a missing key");
@@ -56,30 +56,30 @@ void test_map_access() {
 
 void test_multimap_duplicates() {
     MyUnorderedMultiMap<int, std::string> values;
-    values.Insert({4, "first"});
-    values.Insert({4, "second"});
-    values.Insert({12, "collision"});
-    require(values.Size() == 3 && values.Find(4) != nullptr, "multimap insertion failed");
-    values.Remove(4);
-    require(values.Size() == 1 && values.Find(4) == nullptr, "multimap did not remove all matches");
-    require(values.Find(12) != nullptr, "multimap removed a colliding key");
+    values.insert({4, "first"});
+    values.insert({4, "second"});
+    values.insert({12, "collision"});
+    require(values.size() == 3 && values.find(4) != nullptr, "multimap insertion failed");
+    values.remove(4);
+    require(values.size() == 1 && values.find(4) == nullptr, "multimap did not remove all matches");
+    require(values.find(12) != nullptr, "multimap removed a colliding key");
 }
 
 void test_rehash_and_reserve() {
     MyUnorderedSet<int> values;
-    for (int key = 0; key < 128; ++key) values.Insert(key);
-    values.Reserve(512);
-    values.Rehash(1024);
-    require(values.Size() == 128, "rehash changed the element count");
+    for (int key = 0; key < 128; ++key) values.insert(key);
+    values.reserve(512);
+    values.rehash(1024);
+    require(values.size() == 128, "rehash changed the element count");
     for (int key = 0; key < 128; ++key)
-        require(values.Find(key) != nullptr, "rehash lost a key");
+        require(values.find(key) != nullptr, "rehash lost a key");
 }
 
 void test_iteration() {
     MyUnorderedSet<int> values;
-    values.Insert(1);
-    values.Insert(9);
-    values.Insert(17);
+    values.insert(1);
+    values.insert(9);
+    values.insert(17);
     int count = 0;
     int sum = 0;
     for (auto it = values.begin(); it != values.end(); ++it) {
@@ -91,62 +91,62 @@ void test_iteration() {
 
 void test_copy() {
     MyUnorderedMap<int, std::string> source;
-    source.Insert({1, "one"});
-    source.Insert({9, "nine"});
+    source.insert({1, "one"});
+    source.insert({9, "nine"});
     MyUnorderedMap<int, std::string> copy(source);
-    source.Remove(1);
-    require(copy.Size() == 2 && copy.at(1) == "one", "copy shares elements with source");
+    source.remove(1);
+    require(copy.size() == 2 && copy.at(1) == "one", "copy shares elements with source");
 
     MyUnorderedMap<int, std::string> assigned;
     assigned = copy;
     assigned = assigned;
-    require(assigned.Size() == 2 && assigned.at(9) == "nine", "copy assignment failed");
+    require(assigned.size() == 2 && assigned.at(9) == "nine", "copy assignment failed");
 }
 
 void test_move_and_reuse() {
     MyUnorderedSet<int> source;
-    source.Insert(1);
-    source.Insert(9);
+    source.insert(1);
+    source.insert(9);
     MyUnorderedSet<int> moved(std::move(source));
-    require(moved.Size() == 2 && moved.Find(9) != nullptr, "move construction lost elements");
-    require(source.Size() == 0, "move-constructed source is not empty");
-    source.Insert(17);
-    require(source.Find(17) != nullptr, "move-constructed source cannot be reused");
+    require(moved.size() == 2 && moved.find(9) != nullptr, "move construction lost elements");
+    require(source.size() == 0, "move-constructed source is not empty");
+    source.insert(17);
+    require(source.find(17) != nullptr, "move-constructed source cannot be reused");
 
     MyUnorderedSet<int> assigned;
-    assigned.Insert(100);
+    assigned.insert(100);
     assigned = std::move(moved);
-    require(assigned.Size() == 2 && assigned.Find(1) != nullptr, "move assignment lost elements");
-    require(moved.Size() == 0, "move-assigned source is not empty");
+    require(assigned.size() == 2 && assigned.find(1) != nullptr, "move assignment lost elements");
+    require(moved.size() == 0, "move-assigned source is not empty");
     assigned = std::move(assigned);
-    require(assigned.Size() == 2, "self move assignment changed the object");
-    moved.Insert(25);
-    require(moved.Find(25) != nullptr, "move-assigned source cannot be reused");
+    require(assigned.size() == 2, "self move assignment changed the object");
+    moved.insert(25);
+    require(moved.find(25) != nullptr, "move-assigned source cannot be reused");
 }
 
 void test_empty_move() {
     MyUnorderedSet<int> source;
     MyUnorderedSet<int> moved(std::move(source));
-    require(moved.Size() == 0 && !(moved.begin() != moved.end()), "empty move construction failed");
-    moved.Insert(1);
-    source.Insert(2);
-    require(moved.Find(1) != nullptr && source.Find(2) != nullptr, "empty moved objects cannot be reused");
+    require(moved.size() == 0 && !(moved.begin() != moved.end()), "empty move construction failed");
+    moved.insert(1);
+    source.insert(2);
+    require(moved.find(1) != nullptr && source.find(2) != nullptr, "empty moved objects cannot be reused");
 
     MyUnorderedSet<int> empty;
     moved = std::move(empty);
-    require(moved.Size() == 0 && !(moved.begin() != moved.end()), "empty move assignment failed");
-    moved.Insert(3);
-    empty.Insert(4);
-    require(moved.Find(3) != nullptr && empty.Find(4) != nullptr, "empty move assignment broke reuse");
+    require(moved.size() == 0 && !(moved.begin() != moved.end()), "empty move assignment failed");
+    moved.insert(3);
+    empty.insert(4);
+    require(moved.find(3) != nullptr && empty.find(4) != nullptr, "empty move assignment broke reuse");
 }
 
 void test_multiset_bucket_becomes_empty() {
     MyUnorderedMultiSet<int> values;
-    values.Insert(5);
-    values.Insert(5);
-    values.Remove(5);
-    require(values.Size() == 0, "removing every duplicate did not empty the table");
-    require(values.Find(5) == nullptr, "removed duplicate key is still present");
+    values.insert(5);
+    values.insert(5);
+    values.remove(5);
+    require(values.size() == 0, "removing every duplicate did not empty the table");
+    require(values.find(5) == nullptr, "removed duplicate key is still present");
     require(!(values.begin() != values.end()), "empty multiset iteration is invalid");
 }
 
@@ -156,14 +156,14 @@ void test_randomized_against_std_unordered_set() {
     std::mt19937 random(20260925);
 
     const auto verify_all = [&] {
-        require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
+        require(actual.size() == static_cast<int>(expected.size()), "randomized size mismatch");
         std::unordered_set<int> observed;
         int visited = 0;
         for (auto it = actual.begin(); it != actual.end(); ++it) {
             observed.insert(*it);
             ++visited;
         }
-        require(visited == actual.Size(), "iteration count differs from Size");
+        require(visited == actual.size(), "iteration count differs from Size");
         require(observed == expected, "randomized contents mismatch");
     };
 
@@ -172,25 +172,25 @@ void test_randomized_against_std_unordered_set() {
         const int key = base + static_cast<int>(random() % 16) * 65536;
         const int operation = static_cast<int>(random() % 4);
         if (operation == 0) {
-            actual.Insert(key);
+            actual.insert(key);
             expected.insert(key);
         } else if (operation == 1) {
-            actual.Remove(key);
+            actual.remove(key);
             expected.erase(key);
         } else if (operation == 2) {
-            require((actual.Find(key) != nullptr) == (expected.find(key) != expected.end()),
+            require((actual.find(key) != nullptr) == (expected.find(key) != expected.end()),
                     "randomized Find mismatch");
         } else if (step % 997 == 0) {
             const unsigned requested = static_cast<unsigned>(expected.size() * 2 + 8);
-            actual.Reserve(requested);
+            actual.reserve(requested);
             expected.reserve(requested);
         } else {
             const int missing = key + 1;
-            require((actual.Find(missing) != nullptr) == (expected.find(missing) != expected.end()),
+            require((actual.find(missing) != nullptr) == (expected.find(missing) != expected.end()),
                     "randomized missing-key lookup mismatch");
         }
 
-        require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
+        require(actual.size() == static_cast<int>(expected.size()), "randomized size mismatch");
         if (step % 100 == 0) verify_all();
     }
     verify_all();
@@ -246,17 +246,17 @@ void run_load_factor_benchmark(int elements, int repetitions) {
         const unsigned custom_buckets = custom_bucket_count(requested);
 
         MyUnorderedSet<int> custom;
-        custom.DisableAutoReHash();
-        custom.Rehash(requested);
+        custom.disable_auto_rehash();
+        custom.rehash(requested);
         std::unordered_set<int> standard;
         standard.max_load_factor(factor);
         standard.rehash(requested);
         for (int key = 0; key < elements; ++key) {
-            custom.Insert(key);
+            custom.insert(key);
             standard.insert(key);
         }
         const auto custom_times = measure_lookup(elements, repetitions,
-            [&custom](int key) { return custom.Find(key) != nullptr; });
+            [&custom](int key) { return custom.find(key) != nullptr; });
         const auto standard_times = measure_lookup(elements, repetitions,
             [&standard](int key) { return standard.find(key) != standard.end(); });
 
@@ -284,15 +284,15 @@ struct BenchmarkSummary {
     PhaseTimes median;
 };
 
-void insert_value(MyUnorderedSet<int>& values, int key) { values.Insert(key); }
+void insert_value(MyUnorderedSet<int>& values, int key) { values.insert(key); }
 void insert_value(std::unordered_set<int>& values, int key) { values.insert(key); }
-bool contains_value(MyUnorderedSet<int>& values, int key) { return values.Find(key) != nullptr; }
+bool contains_value(MyUnorderedSet<int>& values, int key) { return values.find(key) != nullptr; }
 bool contains_value(std::unordered_set<int>& values, int key) {
     return values.find(key) != values.end();
 }
-void remove_value(MyUnorderedSet<int>& values, int key) { values.Remove(key); }
+void remove_value(MyUnorderedSet<int>& values, int key) { values.remove(key); }
 void remove_value(std::unordered_set<int>& values, int key) { values.erase(key); }
-int container_size(MyUnorderedSet<int>& values) { return values.Size(); }
+int container_size(MyUnorderedSet<int>& values) { return values.size(); }
 int container_size(std::unordered_set<int>& values) { return static_cast<int>(values.size()); }
 
 template<typename Set>

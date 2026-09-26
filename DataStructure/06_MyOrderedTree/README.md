@@ -25,7 +25,7 @@ STL의 정렬 연관 컨테이너를 참고해 레드블랙 트리 기반의 `Se
 
 | 구분 | 기능 |
 | --- | --- |
-| 공통 트리 | `Insert`, `Find`, `Remove`, `Clear`, `Size` |
+| 공통 트리 | `insert`, `find`, `remove`, `clear`, `size` |
 | 순회 | `begin`, `end`, `cbegin`, `cend`, 전위·후위 `++`/`--` |
 | 객체 관리 | 복사·이동 생성, 복사·이동 대입, 자기 대입 |
 | 고유 키 | `MyOrderedSet`, `MyOrderedMap` |
@@ -46,7 +46,7 @@ Release x64에서 공개 API의 정렬 순회, 검색, 삽입·삭제, 복사·�
 | Multi 컨테이너 | MultiSet·MultiMap 중복 키 | PASS |
 | Map | 중복 거부, 키 순서 순회, 값 보존 | PASS |
 | 복사·이동 | 독립 복사, 자기 대입, 이동 후 원본 재사용 | PASS |
-| Clear | 빈 순회, 전체 삭제, 삭제 후 재사용 | PASS |
+| `clear` | 빈 순회, 전체 삭제, 삭제 후 재사용 | PASS |
 
 ```text
 [PASS 1/8] Unique insertion, sorted iteration, and Find
@@ -66,12 +66,12 @@ Release x64에서 공개 API의 정렬 순회, 검색, 삽입·삭제, 복사·�
 
 ```cpp
 MyOrderedSet<int> values;
-for (int value : {7, 3, 9, 1, 5, 8, 10, 3}) values.Insert(value);
-require(values.Size() == 7, "set accepted a duplicate key");
+for (int value : {7, 3, 9, 1, 5, 8, 10, 3}) values.insert(value);
+require(values.size() == 7, "set accepted a duplicate key");
 require(collect_keys(values) == std::vector<int>({1, 3, 5, 7, 8, 9, 10}),
         "in-order iteration is not sorted");
-require(*values.Find(5) == 5, "Find failed for an existing key");
-require(values.Find(99) == values.end(), "Find returned a node for a missing key");
+require(*values.find(5) == 5, "Find failed for an existing key");
+require(values.find(99) == values.end(), "Find returned a node for a missing key");
 ```
 
 </details>
@@ -82,7 +82,7 @@ require(values.Find(99) == values.end(), "Find returned a node for a missing key
 ```cpp
 auto it = values.end();
 std::vector<int> reversed;
-for (int count = 0; count < values.Size(); ++count) {
+for (int count = 0; count < values.size(); ++count) {
     --it;
     reversed.push_back(*it);
 }
@@ -101,13 +101,13 @@ require(*old == 1 && *post == 2, "post-increment semantics are wrong");
 
 ```cpp
 for (int value : {20, 10, 30, 5, 15, 25, 40, 1, 7, 12, 17, 22, 27, 35, 50}) {
-    values.Insert(value);
+    values.insert(value);
     expected.insert(value);
 }
 for (int value : {1, 5, 30, 20, 50, 999}) {
-    values.Remove(value);
+    values.remove(value);
     expected.erase(value);
-    require(values.Size() == static_cast<int>(expected.size()),
+    require(values.size() == static_cast<int>(expected.size()),
             "size changed incorrectly after removal");
     require(collect_keys(values) == std::vector<int>(expected.begin(), expected.end()),
             "removal damaged tree ordering or connectivity");
@@ -123,13 +123,13 @@ for (int value : {1, 5, 30, 20, 50, 999}) {
 for (int operation = 0; operation < 2000; ++operation) {
     const int value = value_distribution(random);
     if (insert_operation(random)) {
-        actual.Insert(value);
+        actual.insert(value);
         expected.insert(value);
     } else {
-        actual.Remove(value);
+        actual.remove(value);
         expected.erase(value);
     }
-    require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
+    require(actual.size() == static_cast<int>(expected.size()), "randomized size mismatch");
     require(collect_keys(actual) == std::vector<int>(expected.begin(), expected.end()),
             "randomized contents mismatch");
 }
@@ -142,12 +142,12 @@ for (int operation = 0; operation < 2000; ++operation) {
 
 ```cpp
 MyOrderedMultiSet<int> values;
-for (int value : {2, 1, 2, 3, 2}) values.Insert(value);
-require(values.Size() == 5, "multiset rejected duplicate keys");
+for (int value : {2, 1, 2, 3, 2}) values.insert(value);
+require(values.size() == 5, "multiset rejected duplicate keys");
 require(collect_keys(values) == std::vector<int>({1, 2, 2, 2, 3}),
         "multiset iteration order is wrong");
-values.Remove(2);
-require(values.Size() == 4, "multiset Remove did not remove exactly one element");
+values.remove(2);
+require(values.size() == 4, "multiset Remove did not remove exactly one element");
 ```
 
 </details>
@@ -157,15 +157,15 @@ require(values.Size() == 4, "multiset Remove did not remove exactly one element"
 
 ```cpp
 MyOrderedMap<int, std::string> values;
-values.Insert({3, "three"});
-values.Insert({1, "one"});
-values.Insert({2, "two"});
-values.Insert({2, "duplicate"});
+values.insert({3, "three"});
+values.insert({1, "one"});
+values.insert({2, "two"});
+values.insert({2, "duplicate"});
 std::vector<int> keys;
 for (auto it = values.begin(); it != values.end(); ++it) keys.push_back(it->first);
 require(keys == std::vector<int>({1, 2, 3}), "map iteration order is wrong");
-require(values.Size() == 3, "map accepted a duplicate key");
-require(values.Find(2)->second == "two", "map duplicate replaced the original value");
+require(values.size() == 3, "map accepted a duplicate key");
+require(values.find(2)->second == "two", "map duplicate replaced the original value");
 ```
 
 </details>
@@ -175,30 +175,30 @@ require(values.Find(2)->second == "two", "map duplicate replaced the original va
 
 ```cpp
 MyOrderedSet<int> copy(source);
-source.Remove(5);
-require(copy.Size() == 5 && collect_keys(copy) == std::vector<int>({1, 3, 5, 7, 9}),
+source.remove(5);
+require(copy.size() == 5 && collect_keys(copy) == std::vector<int>({1, 3, 5, 7, 9}),
         "copy construction did not create an independent tree");
 
 MyOrderedSet<int> moved(std::move(source));
-require(source.Size() == 0 && moved.Size() == 4, "move construction size is wrong");
-source.Insert(11);
-require(*source.Find(11) == 11, "move-constructed source cannot be reused");
+require(source.size() == 0 && moved.size() == 4, "move construction size is wrong");
+source.insert(11);
+require(*source.find(11) == 11, "move-constructed source cannot be reused");
 ```
 
 </details>
 
 <details>
-<summary>8. Clear 및 빈 순회 테스트</summary>
+<summary>8. clear 및 빈 순회 테스트</summary>
 
 ```cpp
 MyOrderedSet<int> values;
 require(values.begin() == values.end(), "empty begin and end differ");
-values.Insert(1);
-values.Insert(2);
-values.Clear();
-require(values.Size() == 0 && values.begin() == values.end(), "Clear did not empty the tree");
-values.Insert(3);
-require(values.Size() == 1 && *values.begin() == 3, "tree cannot be reused after Clear");
+values.insert(1);
+values.insert(2);
+values.clear();
+require(values.size() == 0 && values.begin() == values.end(), "Clear did not empty the tree");
+values.insert(3);
+require(values.size() == 1 && *values.begin() == 3, "tree cannot be reused after Clear");
 ```
 
 </details>

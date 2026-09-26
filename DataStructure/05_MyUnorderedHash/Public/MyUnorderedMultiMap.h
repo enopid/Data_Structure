@@ -12,8 +12,8 @@ class MyUnorderedMultiMap : public MyHashTable<_Key_Type, _Value_Type,
 public:
     MyUnorderedMultiMap();
     MyUnorderedMultiMap(unsigned int max_size);
-    _Key_Type _KeyExtractor(const _Key_Value_Type& _keyvalue) const;
-    _Value_Type _ValueExtractor(const _Key_Value_Type& _keyvalue) const;
+    _Key_Type _key_extractor(const _Key_Value_Type& _keyvalue) const;
+    _Value_Type _value_extractor(const _Key_Value_Type& _keyvalue) const;
 };
 
 #include "MyUnorderedMultiMap.inl"

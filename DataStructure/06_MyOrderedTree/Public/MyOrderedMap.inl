@@ -4,12 +4,12 @@ template<typename K, typename V, typename Compare>
 inline MyOrderedMap<K, V, Compare>::MyOrderedMap() : _Tree() {}
 
 template<typename K, typename V, typename Compare>
-inline K MyOrderedMap<K, V, Compare>::_KeyExtractor(const _Key_Value_Type& _keyvalue) const {
+inline K MyOrderedMap<K, V, Compare>::_key_extractor(const _Key_Value_Type& _keyvalue) const {
     return _keyvalue.first;
 }
 
 template<typename K, typename V, typename Compare>
-inline V MyOrderedMap<K, V, Compare>::_ValueExtractor(const _Key_Value_Type& _keyvalue) const {
+inline V MyOrderedMap<K, V, Compare>::_value_extractor(const _Key_Value_Type& _keyvalue) const {
     return _keyvalue.second;
 }
 

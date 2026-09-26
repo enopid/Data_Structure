@@ -11,8 +11,8 @@ class MyOrderedMultiMap : public MyRedBlackTree<_Key_Type, _Value_Type,
     using _Tree = MyRedBlackTree<_Key_Type, _Value_Type, _Key_Value_Type, Compare, true>;
 public:
     MyOrderedMultiMap();
-    _Key_Type _KeyExtractor(const _Key_Value_Type& _keyvalue) const;
-    _Value_Type _ValueExtractor(const _Key_Value_Type& _keyvalue) const;
+    _Key_Type _key_extractor(const _Key_Value_Type& _keyvalue) const;
+    _Value_Type _value_extractor(const _Key_Value_Type& _keyvalue) const;
 };
 
 #include "MyOrderedMultiMap.inl"

@@ -1,45 +1,45 @@
 #include "MyVector.h"
 template<typename T>
 MyVector<T>::MyVector() {
-    _size       = 0;
-    _capacity   = 1;
-    _data       = static_cast<T*>(malloc(sizeof(T) * _capacity));
+    iSize       = 0;
+    iCapacity   = 1;
+    pData       = static_cast<T*>(malloc(sizeof(T) * iCapacity));
 }
 
 template<typename T>
 MyVector<T>::MyVector(int N, const T& val) {
-    _size       = N;
-    _capacity   = N;
-    _data       = static_cast<T*>(malloc(sizeof(T) * _capacity));
-    for (int i = 0; i < _size; i++) new (_data + i) T(val);
+    iSize       = N;
+    iCapacity   = N;
+    pData       = static_cast<T*>(malloc(sizeof(T) * iCapacity));
+    for (int i = 0; i < iSize; i++) new (pData + i) T(val);
 }
 
 template<typename T>
 inline MyVector<T>::MyVector(const MyVector& other)
 {
-    _size       = other._size;
-    _capacity   = other._capacity;
-    _data       = static_cast<T*>(malloc(sizeof(T) * _capacity));
+    iSize       = other.iSize;
+    iCapacity   = other.iCapacity;
+    pData       = static_cast<T*>(malloc(sizeof(T) * iCapacity));
     if constexpr (std::is_trivially_copyable_v<T>)
-        memcpy(_data, other._data, sizeof(T) * _size);
+        memcpy(pData, other.pData, sizeof(T) * iSize);
     else
-        for (int i = 0; i < _size; i++) new (_data + i) T(other._data[i]);
+        for (int i = 0; i < iSize; i++) new (pData + i) T(other.pData[i]);
 }
 
 template<typename T>
 MyVector<T>& MyVector<T>::operator=(const MyVector<T>& other)
 {
     if (this == &other) return *this;
-    for (int i = 0; i < _size; i++) _data[i].~T();
-    free(_data);
+    for (int i = 0; i < iSize; i++) pData[i].~T();
+    free(pData);
 
-    _size       = other._size;
-    _capacity   = other._capacity;
-    _data       = static_cast<T*>(malloc(sizeof(T) * _capacity));
+    iSize       = other.iSize;
+    iCapacity   = other.iCapacity;
+    pData       = static_cast<T*>(malloc(sizeof(T) * iCapacity));
     if constexpr (std::is_trivially_copyable_v<T>)
-        memcpy(_data, other._data, sizeof(T) * _size);
+        memcpy(pData, other.pData, sizeof(T) * iSize);
     else 
-        for (int i = 0; i < _size; i++) new (_data + i) T(other._data[i]);
+        for (int i = 0; i < iSize; i++) new (pData + i) T(other.pData[i]);
 
     return *this;
 }
@@ -47,157 +47,157 @@ MyVector<T>& MyVector<T>::operator=(const MyVector<T>& other)
 template<typename T>
 MyVector<T>::MyVector(MyVector<T>&& other) noexcept
 {
-    _size           = other._size;
-    _capacity       = other._capacity;
-    _data           = other._data;
-    other._size     = 0;
-    other._capacity = 0;
-	other._data     = nullptr;
+    iSize           = other.iSize;
+    iCapacity       = other.iCapacity;
+    pData           = other.pData;
+    other.iSize     = 0;
+    other.iCapacity = 0;
+	other.pData     = nullptr;
 }
 
 template<typename T>
 MyVector<T>& MyVector<T>::operator=(MyVector<T>&& other) noexcept
 {
     if (this == &other) return *this;
-    for (int i = 0; i < _size; i++) _data[i].~T();
-    free(_data);
+    for (int i = 0; i < iSize; i++) pData[i].~T();
+    free(pData);
 
-    _size           = other._size;
-    _capacity       = other._capacity;
-    _data           = other._data;
-    other._size     = 0;
-    other._capacity = 0;
-	other._data     = nullptr;
+    iSize           = other.iSize;
+    iCapacity       = other.iCapacity;
+    pData           = other.pData;
+    other.iSize     = 0;
+    other.iCapacity = 0;
+	other.pData     = nullptr;
 
     return *this;
 }
 
 template<typename T>
 MyVector<T>::~MyVector() {
-    for (int i = 0; i < _size; i++) _data[i].~T();
-    free(_data);
+    for (int i = 0; i < iSize; i++) pData[i].~T();
+    free(pData);
 }
 
 //member access 
 template<typename T>
-int MyVector<T>::size()     const { return _size;     }
+int MyVector<T>::size()     const { return iSize;     }
 template<typename T>
-int MyVector<T>::capacity() const { return _capacity; }
+int MyVector<T>::capacity() const { return iCapacity; }
 template<typename T>
-T* MyVector<T>::data()      { return _data;     }
+T* MyVector<T>::data()      { return pData;     }
 
 //capacity modification 
 template<typename T>
 void MyVector<T>::resize(int newsize) {
-    if (_capacity < newsize) { reserve(newsize); }
-    for (int i = _size; i < newsize; i++) new (_data + i) T();
-    for (int i = newsize; i < _size; i++) _data[i].~T();
+    if (iCapacity < newsize) { reserve(newsize); }
+    for (int i = iSize; i < newsize; i++) new (pData + i) T();
+    for (int i = newsize; i < iSize; i++) pData[i].~T();
 
-    _size = newsize;
+    iSize = newsize;
 }
 
 template<typename T>
-void MyVector<T>::resize(int newsize, const T& val) {
-    if (_capacity < newsize) { reserve(newsize); }
-    for (int i = _size; i < newsize; i++) new (_data + i) T(val);
-    for (int i = newsize; i < _size; i++) _data[i].~T();
-    _size = newsize;
+void MyVector<T>::resize(int newSize, const T& val) {
+    if (iCapacity < newSize) { reserve(newSize); }
+    for (int i = iSize; i < newSize; i++) new (pData + i) T(val);
+    for (int i = newSize; i < iSize; i++) pData[i].~T();
+    iSize = newSize;
 }
 
 template<typename T>
 void MyVector<T>::clear() {
-    for (int i = 0; i < _size; i++) _data[i].~T();
-    _size = 0; 
+    for (int i = 0; i < iSize; i++) pData[i].~T();
+    iSize = 0;
 }
 
 template<typename T>
-bool MyVector<T>::empty() const { return (_size == 0); }
+bool MyVector<T>::empty() const { return (iSize == 0); }
 
 template<typename T>
-void MyVector<T>::reserve(int newcapacity) {
-    if (_capacity >= newcapacity)  return;
+void MyVector<T>::reserve(int newCapacity) {
+    if (iCapacity >= newCapacity)  return;
     
-    T* newData = static_cast<T*>(malloc(sizeof(T) * newcapacity));
+    T* _pNewData = static_cast<T*>(malloc(sizeof(T) * newCapacity));
     if constexpr (std::is_trivially_copyable_v<T>) {
-        memcpy(newData, _data, sizeof(T) * _size);
+        memcpy(_pNewData, pData, sizeof(T) * iSize);
     }
     else {
-        for (int i = 0; i < _size; i++) new (newData + i) T(std::move_if_noexcept(_data[i]));
-        for (int i = 0; i < _size; i++) _data[i].~T();
+        for (int i = 0; i < iSize; i++) new (_pNewData + i) T(std::move_if_noexcept(pData[i]));
+        for (int i = 0; i < iSize; i++) pData[i].~T();
     }
-    free(_data);
+    free(pData);
 
-    _data       = newData;
-    _capacity   = newcapacity;
+    pData       = _pNewData;
+    iCapacity   = newCapacity;
 }
 
 template<typename T>
 void MyVector<T>::shrink_to_fit() {
-    if (_capacity <= _size) return;
+    if (iCapacity <= iSize) return;
     
-    T* newData = static_cast<T*>(malloc(sizeof(T) * _size));
+    T* _pNewData = static_cast<T*>(malloc(sizeof(T) * iSize));
     if constexpr (std::is_trivially_copyable_v<T>) {
-        memcpy(newData, _data, sizeof(T) * _size);
+        memcpy(_pNewData, pData, sizeof(T) * iSize);
     }
     else {
-        for (int i = 0; i < _size; i++) new (newData + i) T(std::move_if_noexcept(_data[i]));
-        for (int i = 0; i < _size; i++) _data[i].~T();
+        for (int i = 0; i < iSize; i++) new (_pNewData + i) T(std::move_if_noexcept(pData[i]));
+        for (int i = 0; i < iSize; i++) pData[i].~T();
     }
-    free(_data);
+    free(pData);
 
-    _data       = newData;
-    _capacity   = _size;
+    pData       = _pNewData;
+    iCapacity   = iSize;
 }
 
 //element manipulation 
 template<typename T>
 void MyVector<T>::insert(int pos, const T& val) {
-    if (pos >= _size) return;
-    if (_size >= _capacity) { reserve(std::max(int(_capacity * _growthFactor), 2)); }
+    if (pos >= iSize) return;
+    if (iSize >= iCapacity) { reserve(std::max(int(iCapacity * fGrowthFactor), 2)); }
 
     if constexpr (std::is_trivially_copyable_v<T>) {
-        memmove(_data + pos + 1, _data + pos, sizeof(T) * (_size - pos));
+        memmove(pData + pos + 1, pData + pos, sizeof(T) * (iSize - pos));
     }
     else {
-        new (_data + _size) T(std::move(_data[_size - 1]));
-		for (int i = _size-1; i > pos; i--) _data[i] = std::move(_data[i - 1]);
-		_data[pos].~T();
+        new (pData + iSize) T(std::move(pData[iSize - 1]));
+		for (int i = iSize-1; i > pos; i--) pData[i] = std::move(pData[i - 1]);
+		pData[pos].~T();
     }
-    new (_data + pos) T(val);
-    ++_size;
+    new (pData + pos) T(val);
+    ++iSize;
 }
 
 template<typename T>
 void MyVector<T>::erase(int pos) {
-    if (pos < 0 || pos >= _size) return;
+    if (pos < 0 || pos >= iSize) return;
 
     if constexpr (std::is_trivially_copyable_v<T>) {
-        memmove(_data + pos, _data + pos + 1, sizeof(T) * (_size - pos - 1));
+        memmove(pData + pos, pData + pos + 1, sizeof(T) * (iSize - pos - 1));
     }
     else {
-        for (int i = pos; i < _size - 1; i++) _data[i] = std::move(_data[i + 1]);
+        for (int i = pos; i < iSize - 1; i++) pData[i] = std::move(pData[i + 1]);
     }
-    _data[_size - 1].~T();
-    _size--;
+    pData[iSize - 1].~T();
+    iSize--;
 }
 
 template<typename T>
 void MyVector<T>::pop_back() {
     if (!empty())
-        _data[--_size].~T();
+        pData[--iSize].~T();
 }
 
 template<typename T>
 void MyVector<T>::push_back(const T& val) {
-    if (_size >= _capacity) { reserve(std::max(int(_capacity * _growthFactor), 2)); }
-    new (_data + _size++) T(val);
+    if (iSize >= iCapacity) { reserve(std::max(int(iCapacity * fGrowthFactor), 2)); }
+    new (pData + iSize++) T(val);
 }
 
 
 template<typename T>
 inline void MyVector<T>::print_info()
 {
-    std::cout << "Size \t: " << _size << "\tCapacity \t: " << _capacity << "\n";
+    std::cout << "Size \t: " << iSize << "\tCapacity \t: " << iCapacity << "\n";
 }
 
 template<typename T>
@@ -206,7 +206,7 @@ inline void MyVector<T>::print_elements()
     if constexpr (myvector_detail::is_ostreamable<T>::value)
     {
         std::cout << "elements \t: ";
-        for (size_t i = 0; i < _size; i++) std::cout << _data[i] << "\t";
+        for (size_t i = 0; i < iSize; i++) std::cout << pData[i] << "\t";
         std::cout << "\n";
     }
 }
@@ -214,35 +214,35 @@ inline void MyVector<T>::print_elements()
 //element access 
 template<typename T>
 T& MyVector<T>::operator[] (int ind) {
-    return _data[ind];
+    return pData[ind];
 }
 
 template<typename T>
 inline const T& MyVector<T>::operator[](int ind) const
 {
-    return _data[ind];
+    return pData[ind];
 }
 
 template<typename T>
 T& MyVector<T>::front() {
-    return _data[0];
+    return pData[0];
 }
 
 template<typename T>
 T& MyVector<T>::back() {
-    return _data[_size - 1];
+    return pData[iSize - 1];
 }
 
 //utility 
 template<typename T>
 void MyVector<T>::linear_push_back(const T& val) {
-    if (_size >= _capacity) { reserve(_capacity + 10); }
-    new (_data + _size++) T(val);
+    if (iSize >= iCapacity) { reserve(iCapacity + 10); }
+    new (pData + iSize++) T(val);
 }
 template<typename T>
 void MyVector<T>::set_growth_factor(double growth_factor) {
-    _growthFactor = growth_factor;
+    fGrowthFactor = growth_factor;
 }
 
 template<typename T>
-double MyVector<T>::_growthFactor = 1.5;
+double MyVector<T>::fGrowthFactor = 1.5;

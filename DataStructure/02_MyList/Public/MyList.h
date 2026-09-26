@@ -29,7 +29,7 @@ public:
 		using reference = typename std::conditional<IsConst, const T&, T&>::type;
 		using pointer	= typename std::conditional<IsConst, const T*, T*>::type;
 		iterator();
-		iterator(Node* ptr);
+		iterator(Node* pNode);
 		iterator&	operator=(const iterator& other);
 		bool		operator!=(const iterator& other) const;
 		iterator&	operator++();
@@ -43,7 +43,7 @@ public:
 		friend class MyHashTable;
 
 	private:
-		Node* _ptr = nullptr;
+		Node* pNode = nullptr;
 	};
 
 	template<bool IsConst>
@@ -53,7 +53,7 @@ public:
 		using pointer	= typename std::conditional<IsConst, const T*, T*>::type;
 
 		reverse_iterator(Node* ptr);
-		reverse_iterator(iterator<IsConst> _iter);
+		reverse_iterator(iterator<IsConst> iter);
 		reverse_iterator&	operator++();
 		reverse_iterator	operator++(int);
 		reverse_iterator&	operator--();
@@ -62,11 +62,11 @@ public:
 		reference			operator*();
 		pointer				operator->();
 	private:
-		iterator<IsConst> _iter;
+		iterator<IsConst> iter;
 	};
 
-	int _size = 0;
-	Node* _SentinelNode = nullptr;
+	int iSize = 0;
+	Node* pSentinelNode = nullptr;
 public:
 	MyLinkedList();
 	MyLinkedList(int n);

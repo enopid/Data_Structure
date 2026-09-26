@@ -9,8 +9,8 @@ class MyUnorderedMultiSet : public MyHashTable<_Key_Type, _Key_Type, _Key_Type, 
 public:
     MyUnorderedMultiSet();
     MyUnorderedMultiSet(unsigned int max_size);
-    _Key_Type _KeyExtractor(const _Key_Value_Type& _keyvalue) const;
-    _Key_Type _ValueExtractor(const _Key_Value_Type& _keyvalue) const;
+    _Key_Type _key_extractor(const _Key_Value_Type& _keyvalue) const;
+    _Key_Type _value_extractor(const _Key_Value_Type& _keyvalue) const;
 };
 
 #include "MyUnorderedMultiSet.inl"

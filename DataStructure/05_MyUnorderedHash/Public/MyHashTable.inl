@@ -3,38 +3,38 @@
 
 template<typename K, typename V, typename KV, bool M>
 inline MyHashTable<K, V, KV, M>::MyHashTable() {
-    _buckets = new std::pair<_lstNode*, _lstNode*>[_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
-    _hasher = MyHash<K>();
+    arrBuckets = new std::pair<_lstNode*, _lstNode*>[iBucketSize];
+    for (size_t i = 0; i < iBucketSize; i++) arrBuckets[i] = { nullptr , nullptr };
+    hasher = MyHash<K>();
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
 inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>::MyHashTable(const MyHashTable& other)
 {
-    _bucketSize     = other._bucketSize;
-    _hasher         = other._hasher;
-    usingAutoRehash = other.usingAutoRehash;
-    _maxLoadFactor  = other._maxLoadFactor;
-    _global_list    = other._global_list;
+    iBucketSize     = other.iBucketSize;
+    hasher         = other.hasher;
+    bUsingAutoRehash = other.bUsingAutoRehash;
+    fMaxLoadFactor  = other.fMaxLoadFactor;
+    lstGlobalNodes    = other.lstGlobalNodes;
 
-    _buckets        = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
-    for (auto it = _global_list.begin(); it != _global_list.end(); it++) {
-        int hash = _hasher(other._KeyExtractor(*it)) % _bucketSize;
+    arrBuckets        = new  std::pair<_lstNode*, _lstNode*> [iBucketSize];
+    for (size_t i = 0; i < iBucketSize; i++) arrBuckets[i] = { nullptr , nullptr };
+    for (auto it = lstGlobalNodes.begin(); it != lstGlobalNodes.end(); it++) {
+        int hash = hasher(other._key_extractor(*it)) % iBucketSize;
 
-        if (!_buckets[hash].first) 
-            _buckets[hash] = { it._ptr, it._ptr };
+        if (!arrBuckets[hash].first)
+            arrBuckets[hash] = { it.pNode, it.pNode };
         else
-            _buckets[hash].second = it._ptr;
+            arrBuckets[hash].second = it.pNode;
     }
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
 inline void MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>::DestroyBucket()
 {
-    delete[] _buckets;
-    _buckets = nullptr;
-    _bucketSize = 0;
+    delete[] arrBuckets;
+    arrBuckets = nullptr;
+    iBucketSize = 0;
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
@@ -44,21 +44,21 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>& MyHashTabl
 
     DestroyBucket();
 
-    _bucketSize     = other._bucketSize;
-    _hasher         = other._hasher;
-    usingAutoRehash = other.usingAutoRehash;
-    _maxLoadFactor  = other._maxLoadFactor;
-    _global_list    = other._global_list;
+    iBucketSize     = other.iBucketSize;
+    hasher         = other.hasher;
+    bUsingAutoRehash = other.bUsingAutoRehash;
+    fMaxLoadFactor  = other.fMaxLoadFactor;
+    lstGlobalNodes    = other.lstGlobalNodes;
 
-    _buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
-    for (auto it = _global_list.begin(); it != _global_list.end(); it++) {
-        int hash = _hasher(other._KeyExtractor(*it)) % _bucketSize;
+    arrBuckets = new  std::pair<_lstNode*, _lstNode*> [iBucketSize];
+    for (size_t i = 0; i < iBucketSize; i++) arrBuckets[i] = { nullptr , nullptr };
+    for (auto it = lstGlobalNodes.begin(); it != lstGlobalNodes.end(); it++) {
+        int hash = hasher(other._key_extractor(*it)) % iBucketSize;
 
-        if (!_buckets[hash].first)
-            _buckets[hash] = { it._ptr, it._ptr };
+        if (!arrBuckets[hash].first)
+            arrBuckets[hash] = { it.pNode, it.pNode };
         else
-            _buckets[hash].second = it._ptr;
+            arrBuckets[hash].second = it.pNode;
     }
 
     return *this;
@@ -67,15 +67,15 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>& MyHashTabl
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
 inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>::MyHashTable(MyHashTable&& other)
 {
-    _bucketSize     = other._bucketSize;
-    _hasher         = other._hasher;
-    usingAutoRehash = other.usingAutoRehash;
-    _maxLoadFactor  = other._maxLoadFactor;
-    _global_list    = std::move(other._global_list);
-    _buckets        = other._buckets;
+    iBucketSize     = other.iBucketSize;
+    hasher         = other.hasher;
+    bUsingAutoRehash = other.bUsingAutoRehash;
+    fMaxLoadFactor  = other.fMaxLoadFactor;
+    lstGlobalNodes    = std::move(other.lstGlobalNodes);
+    arrBuckets        = other.arrBuckets;
 
-    other._buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) other._buckets[i] = { nullptr , nullptr };
+    other.arrBuckets = new  std::pair<_lstNode*, _lstNode*> [iBucketSize];
+    for (size_t i = 0; i < iBucketSize; i++) other.arrBuckets[i] = { nullptr , nullptr };
 }
 
 template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, bool IsMulti>
@@ -85,25 +85,25 @@ inline MyHashTable<_Key_Type, _Value_Type, _Key_Value_Type, IsMulti>& MyHashTabl
 
     DestroyBucket();
 
-    _bucketSize     = other._bucketSize;
-    _hasher         = other._hasher;
-    usingAutoRehash = other.usingAutoRehash;
-    _maxLoadFactor  = other._maxLoadFactor;
-    _global_list    = std::move(other._global_list);
-    _buckets        = other._buckets;
+    iBucketSize     = other.iBucketSize;
+    hasher          = other.hasher;
+    bUsingAutoRehash= other.bUsingAutoRehash;
+    fMaxLoadFactor  = other.fMaxLoadFactor;
+    lstGlobalNodes  = std::move(other.lstGlobalNodes);
+    arrBuckets      = other.arrBuckets;
 
-    other._buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) other._buckets[i] = { nullptr , nullptr };
+    other.arrBuckets = new  std::pair<_lstNode*, _lstNode*> [iBucketSize];
+    for (size_t i = 0; i < iBucketSize; i++) other.arrBuckets[i] = { nullptr , nullptr };
 
     return *this;
 }
 
 template<typename K, typename V, typename KV, bool M>
 inline MyHashTable<K, V, KV, M>::MyHashTable(unsigned int max_size) {
-    _bucketSize = _getNextBucketSize(max_size);
-    _buckets = new  std::pair<_lstNode*, _lstNode*> [_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
-    _hasher = MyHash<K>();
+    iBucketSize = _get_next_bucketSize(max_size);
+    arrBuckets = new  std::pair<_lstNode*, _lstNode*> [iBucketSize];
+    for (size_t i = 0; i < iBucketSize; i++) arrBuckets[i] = { nullptr , nullptr };
+    hasher = MyHash<K>();
 }
 
 template<typename K, typename V, typename KV, bool M>
@@ -113,127 +113,126 @@ inline MyHashTable<K, V, KV, M>::~MyHashTable() {
 
 template<typename K, typename V, typename KV, bool M>
 typename MyHashTable<K, V, KV, M>::_lstNode*
-MyHashTable<K, V, KV, M>::Find(K key) {
-    int hash = _hasher(key) % _bucketSize;
-    _lstNode* curNode = _buckets[hash].first;
-    while (curNode) {
-        if (_KeyExtractor(curNode->data) == key) return curNode;
-        curNode = curNode->next;
-        if (_buckets[hash].second == curNode->prev) break;
+MyHashTable<K, V, KV, M>::find(K key) {
+    int hash = hasher(key) % iBucketSize;
+    _lstNode* _pCurNode = arrBuckets[hash].first;
+    while (_pCurNode) {
+        if (_key_extractor(_pCurNode->data) == key) return _pCurNode;
+        _pCurNode = _pCurNode->next;
+        if (arrBuckets[hash].second == _pCurNode->prev) break;
     }
     return nullptr;
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline void MyHashTable<K, V, KV, M>::Insert(KV value) {
+inline void MyHashTable<K, V, KV, M>::insert(KV value) {
     if constexpr (!M)
-        if (Find(_KeyExtractor(value)) != nullptr) return;
+        if (find(_key_extractor(value)) != nullptr) return;
 
-    if (usingAutoRehash) Rehash(0);
+    if (bUsingAutoRehash) rehash(0);
 
-    int hash = _hasher(_KeyExtractor(value)) % _bucketSize;
-    
-    _lstNode* _curNode = nullptr;
-    if (_buckets[hash].first) {
-        _curNode = new _lstNode{ value, _buckets[hash].first->prev, _buckets[hash].first };
+    int hash = hasher(_key_extractor(value)) % iBucketSize;
+
+    _lstNode* _pCurNode = nullptr;
+    if (arrBuckets[hash].first) {
+        _pCurNode = new _lstNode{ value, arrBuckets[hash].first->prev, arrBuckets[hash].first };
     }
     else {
-        _curNode = new _lstNode{ value, _global_list._SentinelNode->prev, _global_list._SentinelNode };
-        _buckets[hash].second = _curNode;
+        _pCurNode = new _lstNode{ value, lstGlobalNodes.pSentinelNode->prev, lstGlobalNodes.pSentinelNode };
+        arrBuckets[hash].second = _pCurNode;
     }
 
-    _buckets[hash].first = _curNode;
-    _curNode->prev->next = _buckets[hash].first;
-    _curNode->next->prev = _buckets[hash].first;
-    _global_list._size++;
+    arrBuckets[hash].first = _pCurNode;
+    _pCurNode->prev->next = arrBuckets[hash].first;
+    _pCurNode->next->prev = arrBuckets[hash].first;
+    lstGlobalNodes.iSize++;
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline void MyHashTable<K, V, KV, M>::Remove(K key) {
-    int hash = _hasher(key) % _bucketSize;
-    _lstNode* curNode = _buckets[hash].first;
-    _lstNode* endNode = _buckets[hash].second
-        ? _buckets[hash].second->next : nullptr;
-    while (curNode != endNode) {
-        if (_KeyExtractor(curNode->data) == key) {
-            if (_buckets[hash].first == curNode && _buckets[hash].second == curNode) {
-                _buckets[hash].first = _buckets[hash].second = nullptr;
+inline void MyHashTable<K, V, KV, M>::remove(K key) {
+    int hash = hasher(key) % iBucketSize;
+    _lstNode* _pCurNode = arrBuckets[hash].first;
+    _lstNode* _pEndNode = arrBuckets[hash].second
+        ? arrBuckets[hash].second->next : nullptr;
+    while (_pCurNode != _pEndNode) {
+        if (_key_extractor(_pCurNode->data) == key) {
+            if (arrBuckets[hash].first == _pCurNode && arrBuckets[hash].second == _pCurNode) {
+                arrBuckets[hash].first = arrBuckets[hash].second = nullptr;
             }
-            else if (_buckets[hash].first  == curNode) {
-                _buckets[hash].first = curNode->next;
+            else if (arrBuckets[hash].first  == _pCurNode) {
+                arrBuckets[hash].first = _pCurNode->next;
             }
-            else if (_buckets[hash].second == curNode) {
-                _buckets[hash].second = curNode->prev;
+            else if (arrBuckets[hash].second == _pCurNode) {
+                arrBuckets[hash].second = _pCurNode->prev;
             }
 
-
-            _lstNode* deletedNode = curNode;
-            curNode = deletedNode->next;
+            _lstNode* deletedNode = _pCurNode;
+            _pCurNode = deletedNode->next;
             delete deletedNode;
-            _global_list._size--;
+            lstGlobalNodes.iSize--;
 
             if constexpr (!M) return;
         } 
         else {
-            curNode  = curNode->next;
+            _pCurNode  = _pCurNode->next;
         }
 
     }
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline unsigned MyHashTable<K, V, KV, M>::_getNextBucketSize(unsigned _minBucketSize) {
-    _minBucketSize = std::max(_minBucketSize, unsigned(_global_list.size() / MaxLoadFactor()));
-    if (_minBucketSize < _bucketSize) return _bucketSize;
-    unsigned _newBucketSize = _bucketSize;
+inline unsigned MyHashTable<K, V, KV, M>::_get_next_bucketSize(unsigned _minBucketSize) {
+    _minBucketSize = std::max(_minBucketSize, unsigned(lstGlobalNodes.size() / get_max_load_factor()));
+    if (_minBucketSize < iBucketSize) return iBucketSize;
+    unsigned _newBucketSize = iBucketSize;
     while (_minBucketSize > _newBucketSize) _newBucketSize <<= 1;
     return _newBucketSize;
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline void MyHashTable<K, V, KV, M>::Reserve(unsigned _minElementSize) {
-    Rehash(_minElementSize / MaxLoadFactor());
+inline void MyHashTable<K, V, KV, M>::reserve(unsigned _minElementSize) {
+    rehash(static_cast<unsigned>(_minElementSize / get_max_load_factor()));
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline void MyHashTable<K, V, KV, M>::Rehash(unsigned _minBucketSize) {
-    unsigned _newBucketSize = _getNextBucketSize(_minBucketSize);
-    if (_newBucketSize <= _bucketSize) return;
+inline void MyHashTable<K, V, KV, M>::rehash(unsigned _minBucketSize) {
+    unsigned _newBucketSize = _get_next_bucketSize(_minBucketSize);
+    if (_newBucketSize <= iBucketSize) return;
 
 
     DestroyBucket();
-    _bucketSize = _newBucketSize;
-    _buckets = new  std::pair<_lstNode*, _lstNode*>[_bucketSize];
-    for (size_t i = 0; i < _bucketSize; i++) _buckets[i] = { nullptr , nullptr };
+    iBucketSize = _newBucketSize;
+    arrBuckets = new  std::pair<_lstNode*, _lstNode*>[iBucketSize];
+    for (size_t i = 0; i < iBucketSize; i++) arrBuckets[i] = { nullptr , nullptr };
 
-    auto _tmpAry = new _lstNode*[_global_list.size()];
+    auto _tmpAry = new _lstNode*[lstGlobalNodes.size()];
     int iCnt = 0;
-    for (auto it = _global_list.begin(); it != _global_list.end(); it++) {
-        _tmpAry[iCnt++] = it._ptr;
+    for (auto it = lstGlobalNodes.begin(); it != lstGlobalNodes.end(); it++) {
+        _tmpAry[iCnt++] = it.pNode;
     }
 
-    _global_list._SentinelNode->prev = _global_list._SentinelNode;
-    _global_list._SentinelNode->next = _global_list._SentinelNode;
-    for (int i = 0; i < _global_list.size(); i++) {
-        int hash = _hasher(_KeyExtractor(_tmpAry[i]->data)) % _bucketSize;
+    lstGlobalNodes.pSentinelNode->prev = lstGlobalNodes.pSentinelNode;
+    lstGlobalNodes.pSentinelNode->next = lstGlobalNodes.pSentinelNode;
+    for (int i = 0; i < lstGlobalNodes.size(); i++) {
+        int hash = hasher(_key_extractor(_tmpAry[i]->data)) % iBucketSize;
 
-        if (!_buckets[hash].first) {
-            _tmpAry[i]->next = _global_list._SentinelNode;
-            _tmpAry[i]->prev = _global_list._SentinelNode->prev;
+        if (!arrBuckets[hash].first) {
+            _tmpAry[i]->next = lstGlobalNodes.pSentinelNode;
+            _tmpAry[i]->prev = lstGlobalNodes.pSentinelNode->prev;
 
-            _global_list._SentinelNode->prev->next  = _tmpAry[i];
-            _global_list._SentinelNode->prev        = _tmpAry[i];
+            lstGlobalNodes.pSentinelNode->prev->next  = _tmpAry[i];
+            lstGlobalNodes.pSentinelNode->prev        = _tmpAry[i];
 
-            _buckets[hash] = { _tmpAry[i], _tmpAry[i] };
+            arrBuckets[hash] = { _tmpAry[i], _tmpAry[i] };
         }
         else {
-            _tmpAry[i]->next = _buckets[hash].first;
-            _tmpAry[i]->prev = _buckets[hash].first->prev;
+            _tmpAry[i]->next = arrBuckets[hash].first;
+            _tmpAry[i]->prev = arrBuckets[hash].first->prev;
 
-            _buckets[hash].first->prev->next = _tmpAry[i];
-            _buckets[hash].first->prev = _tmpAry[i];
+            arrBuckets[hash].first->prev->next = _tmpAry[i];
+            arrBuckets[hash].first->prev = _tmpAry[i];
 
-            _buckets[hash].first = _tmpAry[i];
+            arrBuckets[hash].first = _tmpAry[i];
         }
     }
 
@@ -241,28 +240,28 @@ inline void MyHashTable<K, V, KV, M>::Rehash(unsigned _minBucketSize) {
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline void MyHashTable<K, V, KV, M>::DisableAutoReHash() {
-    usingAutoRehash = false;
+inline void MyHashTable<K, V, KV, M>::disable_auto_rehash() {
+    bUsingAutoRehash = false;
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline int MyHashTable<K, V, KV, M>::Size() {
-    return _global_list.size();
+inline int MyHashTable<K, V, KV, M>::size() {
+    return lstGlobalNodes.size();
 }
 
 template<typename K, typename V, typename KV, bool M>
-inline float MyHashTable<K, V, KV, M>::MaxLoadFactor() {
-    return _maxLoadFactor;
+inline float MyHashTable<K, V, KV, M>::get_max_load_factor() {
+    return fMaxLoadFactor;
 }
 
 template<typename K, typename V, typename KV, bool M>
 inline typename MyLinkedList<KV>::template iterator<false>
 MyHashTable<K, V, KV, M>::begin() {
-    return _global_list.begin();
+    return lstGlobalNodes.begin();
 }
 
 template<typename K, typename V, typename KV, bool M>
 inline typename MyLinkedList<KV>::template iterator<false>
 MyHashTable<K, V, KV, M>::end() {
-    return _global_list.end();
+    return lstGlobalNodes.end();
 }

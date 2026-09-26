@@ -43,14 +43,14 @@ public:
     const T&    front()		const;
     const T&    back()		const;
 
-    bool	    empty()		const { return m_iSize == 0; };
-    int         size()      const { return m_iSize; };
+    bool	    empty()		const { return iSize == 0; };
+    int         size()      const { return iSize; };
 private:
     void        Grow();
 private:
-    MyVector<Chunk*> m_vecRingBuffer;
-    int m_iSize         = 0;
-    int m_iStartOffset  = 0;
+    MyVector<Chunk*> vecRingBuffer;
+    int iSize         = 0;
+    int iStartOffset  = 0;
 
     virtual void print_info()       override;
     virtual void print_elements()   override;

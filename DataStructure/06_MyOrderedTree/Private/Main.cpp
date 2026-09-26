@@ -29,20 +29,20 @@ std::vector<int> collect_keys(Tree& tree) {
 
 void test_unique_insertion_and_find() {
     MyOrderedSet<int> values;
-    for (int value : {7, 3, 9, 1, 5, 8, 10, 3}) values.Insert(value);
-    require(values.Size() == 7, "set accepted a duplicate key");
+    for (int value : {7, 3, 9, 1, 5, 8, 10, 3}) values.insert(value);
+    require(values.size() == 7, "set accepted a duplicate key");
     require(collect_keys(values) == std::vector<int>({1, 3, 5, 7, 8, 9, 10}),
             "in-order iteration is not sorted");
-    require(*values.Find(5) == 5, "Find failed for an existing key");
-    require(values.Find(99) == values.end(), "Find returned a node for a missing key");
+    require(*values.find(5) == 5, "Find failed for an existing key");
+    require(values.find(99) == values.end(), "Find returned a node for a missing key");
 }
 
 void test_bidirectional_iteration() {
     MyOrderedSet<int> values;
-    for (int value : {4, 2, 6, 1, 3, 5, 7}) values.Insert(value);
+    for (int value : {4, 2, 6, 1, 3, 5, 7}) values.insert(value);
     auto it = values.end();
     std::vector<int> reversed;
-    for (int count = 0; count < values.Size(); ++count) {
+    for (int count = 0; count < values.size(); ++count) {
         --it;
         reversed.push_back(*it);
     }
@@ -58,13 +58,13 @@ void test_removal_cases() {
     MyOrderedSet<int> values;
     std::set<int> expected;
     for (int value : {20, 10, 30, 5, 15, 25, 40, 1, 7, 12, 17, 22, 27, 35, 50}) {
-        values.Insert(value);
+        values.insert(value);
         expected.insert(value);
     }
     for (int value : {1, 5, 30, 20, 50, 999}) {
-        values.Remove(value);
+        values.remove(value);
         expected.erase(value);
-        require(values.Size() == static_cast<int>(expected.size()), "size changed incorrectly after removal");
+        require(values.size() == static_cast<int>(expected.size()), "size changed incorrectly after removal");
         require(collect_keys(values) == std::vector<int>(expected.begin(), expected.end()),
                 "removal damaged tree ordering or connectivity");
     }
@@ -79,16 +79,16 @@ void test_randomized_against_std_set() {
         const int value = value_distribution(random);
         const int action = static_cast<int>(random() % 3);
         if (action == 0) {
-            actual.Insert(value);
+            actual.insert(value);
             expected.insert(value);
         } else if (action == 1) {
-            actual.Remove(value);
+            actual.remove(value);
             expected.erase(value);
         } else {
-            require((actual.Find(value) != actual.end()) == (expected.find(value) != expected.end()),
+            require((actual.find(value) != actual.end()) == (expected.find(value) != expected.end()),
                     "randomized Find mismatch");
         }
-        require(actual.Size() == static_cast<int>(expected.size()), "randomized size mismatch");
+        require(actual.size() == static_cast<int>(expected.size()), "randomized size mismatch");
         if (operation % 100 == 0) {
             require(collect_keys(actual) == std::vector<int>(expected.begin(), expected.end()),
                     "randomized contents mismatch");
@@ -100,38 +100,38 @@ void test_randomized_against_std_set() {
 
 void test_multi_containers() {
     MyOrderedMultiSet<int> values;
-    for (int value : {2, 1, 2, 3, 2}) values.Insert(value);
-    require(values.Size() == 5, "multiset rejected duplicate keys");
+    for (int value : {2, 1, 2, 3, 2}) values.insert(value);
+    require(values.size() == 5, "multiset rejected duplicate keys");
     require(collect_keys(values) == std::vector<int>({1, 2, 2, 2, 3}), "multiset iteration order is wrong");
-    values.Remove(2);
-    require(values.Size() == 4, "multiset Remove did not remove exactly one element");
+    values.remove(2);
+    require(values.size() == 4, "multiset Remove did not remove exactly one element");
 
     MyOrderedMultiMap<int, std::string> map;
-    map.Insert({2, "first"});
-    map.Insert({2, "second"});
-    map.Insert({1, "one"});
-    require(map.Size() == 3, "multimap rejected duplicate keys");
+    map.insert({2, "first"});
+    map.insert({2, "second"});
+    map.insert({1, "one"});
+    require(map.size() == 3, "multimap rejected duplicate keys");
 }
 
 void test_map_iteration() {
     MyOrderedMap<int, std::string> values;
-    values.Insert({3, "three"});
-    values.Insert({1, "one"});
-    values.Insert({2, "two"});
-    values.Insert({2, "duplicate"});
+    values.insert({3, "three"});
+    values.insert({1, "one"});
+    values.insert({2, "two"});
+    values.insert({2, "duplicate"});
     std::vector<int> keys;
     for (auto it = values.begin(); it != values.end(); ++it) keys.push_back(it->first);
     require(keys == std::vector<int>({1, 2, 3}), "map iteration order is wrong");
-    require(values.Size() == 3, "map accepted a duplicate key");
-    require(values.Find(2)->second == "two", "map duplicate replaced the original value");
+    require(values.size() == 3, "map accepted a duplicate key");
+    require(values.find(2)->second == "two", "map duplicate replaced the original value");
 }
 
 void test_copy_and_move() {
     MyOrderedSet<int> source;
-    for (int value : {5, 1, 9, 3, 7}) source.Insert(value);
+    for (int value : {5, 1, 9, 3, 7}) source.insert(value);
     MyOrderedSet<int> copy(source);
-    source.Remove(5);
-    require(copy.Size() == 5 && collect_keys(copy) == std::vector<int>({1, 3, 5, 7, 9}),
+    source.remove(5);
+    require(copy.size() == 5 && collect_keys(copy) == std::vector<int>({1, 3, 5, 7, 9}),
             "copy construction did not create an independent tree");
 
     MyOrderedSet<int> assigned;
@@ -140,25 +140,25 @@ void test_copy_and_move() {
     require(collect_keys(assigned) == collect_keys(copy), "copy assignment failed");
 
     MyOrderedSet<int> moved(std::move(source));
-    require(source.Size() == 0 && moved.Size() == 4, "move construction size is wrong");
-    source.Insert(11);
-    require(*source.Find(11) == 11, "move-constructed source cannot be reused");
+    require(source.size() == 0 && moved.size() == 4, "move construction size is wrong");
+    source.insert(11);
+    require(*source.find(11) == 11, "move-constructed source cannot be reused");
 
     assigned = std::move(moved);
-    require(moved.Size() == 0 && assigned.Size() == 4, "move assignment failed");
-    moved.Insert(13);
-    require(*moved.Find(13) == 13, "move-assigned source cannot be reused");
+    require(moved.size() == 0 && assigned.size() == 4, "move assignment failed");
+    moved.insert(13);
+    require(*moved.find(13) == 13, "move-assigned source cannot be reused");
 }
 
 void test_clear_and_empty_iteration() {
     MyOrderedSet<int> values;
     require(values.begin() == values.end(), "empty begin and end differ");
-    values.Insert(1);
-    values.Insert(2);
-    values.Clear();
-    require(values.Size() == 0 && values.begin() == values.end(), "Clear did not empty the tree");
-    values.Insert(3);
-    require(values.Size() == 1 && *values.begin() == 3, "tree cannot be reused after Clear");
+    values.insert(1);
+    values.insert(2);
+    values.clear();
+    require(values.size() == 0 && values.begin() == values.end(), "Clear did not empty the tree");
+    values.insert(3);
+    require(values.size() == 1 && *values.begin() == 3, "tree cannot be reused after Clear");
 }
 
 struct PhaseTimes {
@@ -234,25 +234,25 @@ BenchmarkSummary measure_benchmark(int repetitions, RunOnce run_once) {
 PhaseTimes run_my_ordered_set(const std::vector<int>& keys) {
     MyOrderedSet<int> values;
     auto start = std::chrono::steady_clock::now();
-    for (int key : keys) values.Insert(key);
+    for (int key : keys) values.insert(key);
     auto end = std::chrono::steady_clock::now();
     PhaseTimes times;
     times.insert_us = elapsed_us(start, end);
 
     start = std::chrono::steady_clock::now();
     int found = 0;
-    for (int key : keys) found += values.Find(key) != values.end();
+    for (int key : keys) found += values.find(key) != values.end();
     end = std::chrono::steady_clock::now();
     times.find_us = elapsed_us(start, end);
     require(found == static_cast<int>(keys.size()), "MyOrderedSet benchmark lookup failed");
 
     start = std::chrono::steady_clock::now();
-    for (std::size_t index = 0; index < keys.size(); index += 2) values.Remove(keys[index]);
+    for (std::size_t index = 0; index < keys.size(); index += 2) values.remove(keys[index]);
     end = std::chrono::steady_clock::now();
     times.remove_us = elapsed_us(start, end);
 
     start = std::chrono::steady_clock::now();
-    for (std::size_t index = 0; index < keys.size(); index += 2) values.Insert(keys[index]);
+    for (std::size_t index = 0; index < keys.size(); index += 2) values.insert(keys[index]);
     end = std::chrono::steady_clock::now();
     times.reinsert_us = elapsed_us(start, end);
 
@@ -262,7 +262,7 @@ PhaseTimes run_my_ordered_set(const std::vector<int>& keys) {
     end = std::chrono::steady_clock::now();
     times.iterate_us = elapsed_us(start, end);
     const long long expected = static_cast<long long>(keys.size() - 1) * keys.size() / 2;
-    require(values.Size() == static_cast<int>(keys.size()) && checksum == expected,
+    require(values.size() == static_cast<int>(keys.size()) && checksum == expected,
             "MyOrderedSet benchmark final state is invalid");
     return times;
 }
@@ -349,25 +349,25 @@ struct ComparisonSummary {
     ComparisonTimes median;
 };
 
-void insert_value(MyOrderedSet<int>& values, int key) { values.Insert(key); }
-void insert_value(MyUnorderedSet<int>& values, int key) { values.Insert(key); }
+void insert_value(MyOrderedSet<int>& values, int key) { values.insert(key); }
+void insert_value(MyUnorderedSet<int>& values, int key) { values.insert(key); }
 void insert_value(std::set<int>& values, int key) { values.insert(key); }
 void insert_value(std::unordered_set<int>& values, int key) { values.insert(key); }
 
-bool contains_value(MyOrderedSet<int>& values, int key) { return values.Find(key) != values.end(); }
-bool contains_value(MyUnorderedSet<int>& values, int key) { return values.Find(key) != nullptr; }
+bool contains_value(MyOrderedSet<int>& values, int key) { return values.find(key) != values.end(); }
+bool contains_value(MyUnorderedSet<int>& values, int key) { return values.find(key) != nullptr; }
 bool contains_value(std::set<int>& values, int key) { return values.find(key) != values.end(); }
 bool contains_value(std::unordered_set<int>& values, int key) {
     return values.find(key) != values.end();
 }
 
-void remove_value(MyOrderedSet<int>& values, int key) { values.Remove(key); }
-void remove_value(MyUnorderedSet<int>& values, int key) { values.Remove(key); }
+void remove_value(MyOrderedSet<int>& values, int key) { values.remove(key); }
+void remove_value(MyUnorderedSet<int>& values, int key) { values.remove(key); }
 void remove_value(std::set<int>& values, int key) { values.erase(key); }
 void remove_value(std::unordered_set<int>& values, int key) { values.erase(key); }
 
-int container_size(MyOrderedSet<int>& values) { return values.Size(); }
-int container_size(MyUnorderedSet<int>& values) { return values.Size(); }
+int container_size(MyOrderedSet<int>& values) { return values.size(); }
+int container_size(MyUnorderedSet<int>& values) { return values.size(); }
 int container_size(std::set<int>& values) { return static_cast<int>(values.size()); }
 int container_size(std::unordered_set<int>& values) { return static_cast<int>(values.size()); }
 

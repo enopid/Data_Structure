@@ -60,10 +60,10 @@ public:
     virtual void print_info()       override;
     virtual void print_elements()   override;
 private:
-    int _size;
-    int _capacity;
-    static double _growthFactor;
-    T* _data;
+    int iSize;
+    int iCapacity;
+    static double fGrowthFactor;
+    T* pData;
 };
 
 #include "MyVector.inl"

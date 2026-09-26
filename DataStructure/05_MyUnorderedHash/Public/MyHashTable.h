@@ -10,8 +10,8 @@ template<typename _Key_Type, typename _Value_Type, typename _Key_Value_Type, boo
 class MyHashTable {
     using _lstNode = typename MyLinkedList<_Key_Value_Type>::Node;
 private:
-    virtual _Key_Type   _KeyExtractor   (const _Key_Value_Type& _keyvalue) const = 0;
-    virtual _Value_Type _ValueExtractor (const _Key_Value_Type& _keyvalue) const = 0;
+    virtual _Key_Type   _key_extractor   (const _Key_Value_Type& _keyvalue) const = 0;
+    virtual _Value_Type _value_extractor (const _Key_Value_Type& _keyvalue) const = 0;
 
 public:
     MyHashTable();
@@ -23,26 +23,26 @@ public:
     MyHashTable(unsigned int max_size);
     ~MyHashTable();
 
-    _lstNode* Find(_Key_Type key);
-    void    Insert(_Key_Value_Type value);
-    void    Remove(_Key_Type key);
-    unsigned _getNextBucketSize(unsigned _minBucketSize);
-    void Reserve(unsigned _minElementSize);
-    void Rehash(unsigned _minBucketSize);
-    void DisableAutoReHash();
-    int Size();
-    float MaxLoadFactor();
+    _lstNode* find(_Key_Type key);
+    void    insert(_Key_Value_Type value);
+    void    remove(_Key_Type key);
+    unsigned _get_next_bucketSize(unsigned _minBucketSize);
+    void reserve(unsigned _minElementSize);
+    void rehash(unsigned _minBucketSize);
+    void disable_auto_rehash();
+    int size();
+    float get_max_load_factor();
     typename MyLinkedList<_Key_Value_Type>::template iterator<false> begin();
     typename MyLinkedList<_Key_Value_Type>::template iterator<false> end();
 
 private:
-    unsigned int _bucketSize = 8;
-    MyHash<_Key_Type> _hasher;
-    bool usingAutoRehash = true;
-    float _maxLoadFactor = 1.0f;
+    unsigned int iBucketSize = 8;
+    MyHash<_Key_Type> hasher;
+    bool bUsingAutoRehash = true;
+    float fMaxLoadFactor = 1.0f;
 
-    std::pair<_lstNode*, _lstNode*>* _buckets;
-    MyLinkedList<_Key_Value_Type> _global_list;
+    std::pair<_lstNode*, _lstNode*>* arrBuckets;
+    MyLinkedList<_Key_Value_Type> lstGlobalNodes;
 };
 
 #include "MyHashTable.inl"

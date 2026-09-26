@@ -114,11 +114,11 @@ public:
     MyRedBlackTree& operator=(MyRedBlackTree&& other);
     ~MyRedBlackTree();
 
-    void            Insert(_Key_Value_Type value);
-    void            Remove(_Key_Type key);
-    int             Size() const { return iSize; };
-    void            Clear();
-    iterator<false> Find(_Key_Type key);
+    void            insert(_Key_Value_Type value);
+    void            remove(_Key_Type key);
+    int             size() const { return iSize; };
+    void            clear();
+    iterator<false> find(_Key_Type key);
 
 
     iterator<false>			begin() {
@@ -141,24 +141,24 @@ public:
     }
 
 private:
-    FTreeNode* CreateNewNode(bool IsRed, _Key_Value_Type value);
-    void CopyNode(FTreeNode* pSrc, FTreeNode* pSrcNIL, FTreeNode* pDst);
+    FTreeNode* create_new_node(bool IsRed, _Key_Value_Type value);
+    void copy_node(FTreeNode* pSrc, FTreeNode* pSrcNIL, FTreeNode* pDst);
 
-    void RotateRight(FTreeNode* pNode);
-    void RotateLeft (FTreeNode* pNode);
-    FTreeNode* FindNode(_Key_Type key);
-    bool InsertNode (FTreeNode* pCurNode, FTreeNode* pNode);
-    bool RemoveNode (FTreeNode** pSuccessorNode, FTreeNode* pNode);
-    void RebuildTree_Insert(FTreeNode* pNode);
-    void RebuildTree_Remove(FTreeNode* pNode);
+    void rotate_right(FTreeNode* pNode);
+    void rotate_left (FTreeNode* pNode);
+    FTreeNode* find_node(_Key_Type key);
+    bool insert_node (FTreeNode* pCurNode, FTreeNode* pNode);
+    bool remove_node (FTreeNode** pSuccessorNode, FTreeNode* pNode);
+    void rebuild_tree_insert(FTreeNode* pNode);
+    void rebuild_tree_remove(FTreeNode* pNode);
 
     FTreeNode* pRootNode = nullptr;
     FTreeNode* pNILNode  = nullptr;
     Compare comp;
     int         iSize = 0;
 protected:
-    virtual _Key_Type _KeyExtractor(const _Key_Value_Type& _keyvalue) const = 0;
-    virtual _Value_Type _ValueExtractor(const _Key_Value_Type& _keyvalue) const = 0;
+    virtual _Key_Type _key_extractor(const _Key_Value_Type& _keyvalue) const = 0;
+    virtual _Value_Type _value_extractor(const _Key_Value_Type& _keyvalue) const = 0;
 };
 
 #include "MyRedBlackTree.inl"
