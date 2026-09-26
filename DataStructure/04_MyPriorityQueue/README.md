@@ -270,9 +270,7 @@ MyPriorityQueue.exe --benchmark 100000 30
 
 이번 조건에서 `std::priority_queue`의 중앙값은 MyPriorityQueue보다 약 2.51배 빨랐습니다.
 
-MyPriorityQueue는 `std::priority_queue`보다 성능이 낮지만, 이는 각 원소의 핸들을 관리하고 노드 교환 시 힙 인덱스를 함께 갱신하는 비용 때문입니다. 
-
-대신 `std::priority_queue`가 지원하지 않는 decrease-key와 임의 원소 갱신·삭제를 핸들을 통해 지원합니다.
+MyPriorityQueue는 `std::priority_queue`보다 성능이 낮지만, 이는 decreasing key를 지원하여 발생하는 핸들 관리 비용으로 추정됩니다.
 
 </details>
 
